@@ -1,0 +1,2 @@
+DROP TABLE employee_participation_in_professional_communities;
+

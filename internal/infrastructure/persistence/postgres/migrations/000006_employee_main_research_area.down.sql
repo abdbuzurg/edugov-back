@@ -1,0 +1,2 @@
+DROP TABLE employee_main_research_areas;
+DROP TABLE employee_main_research_area_key_topics;
