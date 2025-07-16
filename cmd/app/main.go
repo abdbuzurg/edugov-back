@@ -56,6 +56,7 @@ func main() {
 	userSessionRepo := postgres.NewPGUserSessionRepository(store)
 	employeeRepo := postgres.NewPgEmployeeRepository(store)
 	employeeDetailsRepo := postgres.NewPGEmployeeDetailsRepository(store)
+	employeeDegreeRepo := postgres.NewPgEmployeeDegreeRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
@@ -70,14 +71,16 @@ func main() {
 	authUC := usecases.NewAuthUsecase(userRepo, userSessionRepo, employeeRepo, store, tokenManager, validator)
 	employeeUC := usecases.NewEmployeeUsecase(employeeRepo, store, validator)
 	employeeDetailsUC := usecases.NewEmployeeDetailsUsecase(employeeDetailsRepo, store, validator)
+	employeeDegreeUC := usecases.NewEmployeeDegreeUsecase(employeeDegreeRepo, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
 	employeeHandlers := handlers.NewEmployeeHandler(employeeUC)
 	employeeDetailsHandler := handlers.NewEmployeeDetailsHandler(employeeDetailsUC)
+	employeeDegreeHandler := handlers.NewEmployeeDegreeHandler(employeeDegreeUC)
 
 	// --- Initilization of Routes
-  authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
+	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
 	mainMux := http.NewServeMux()
 	mainMux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithJSON(w, r, http.StatusOK, map[string]string{"ping": "pong"})
@@ -95,8 +98,14 @@ func main() {
 	employeeMux := http.NewServeMux()
 
 	employeeMux.HandleFunc("GET /{uid}", employeeHandlers.GetByUID)
+  // ---- employee/detials
 	employeeMux.HandleFunc("PUT /details", authMiddleware(employeeDetailsHandler.Update))
-  employeeMux.HandleFunc("GET /details/{employeeID}", employeeDetailsHandler.GetByEmployeeID)
+	employeeMux.HandleFunc("GET /details/{employeeID}", employeeDetailsHandler.GetByEmployeeID)
+  // ---- employee/degree
+	employeeMux.HandleFunc("GET /degree/{employeeID}", employeeDegreeHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("PUT /degree", authMiddleware(employeeDegreeHandler.Update))
+	employeeMux.HandleFunc("POST /degree", authMiddleware(employeeDegreeHandler.Create))
+	employeeMux.HandleFunc("DELETE /degree/{id}", authMiddleware(employeeDegreeHandler.Delete))
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 

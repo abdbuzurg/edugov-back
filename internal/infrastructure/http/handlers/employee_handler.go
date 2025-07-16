@@ -42,13 +42,11 @@ func (h *EmployeeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // Request body - none
 // Response body - dtos.EmployeeResponse
 func (h *EmployeeHandler) GetByUID(w http.ResponseWriter, r *http.Request) {
-  fmt.Println(utils.GetLanguageFromContext(r.Context()))
 	resp, err := h.employeeUC.GetByUniqueID(r.Context(), r.PathValue("uid"))
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
 	}
-  fmt.Println(resp)
 
   utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }

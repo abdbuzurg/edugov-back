@@ -21,7 +21,7 @@ func NewEmployeeDegreeHandler(employeeDegreeUC usecases.EmployeeDegreeUsecase) *
 	}
 }
 
-// POST /employee-degree
+// POST /employee/degree
 // Request body - dto.CreateEmployeeDegreeRequest
 // Response body - dto.EmployeeDegreeResponse
 func (h *EmployeeDegreeHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +41,7 @@ func (h *EmployeeDegreeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, r, http.StatusCreated, resp)
 }
 
-// PUT /employee-degree
+// PUT /employee/degree
 // Request body - dto.UpdateEmployeeDegreeRequest
 // Response body - dto.EmployeeDegreeResponse
 func (h *EmployeeDegreeHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func (h *EmployeeDegreeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
 
-// DELETE /employee-degree/{id}
+// DELETE /employee/degree/{id}
 // Request body - None
 // Response body - None
 func (h *EmployeeDegreeHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,7 @@ func (h *EmployeeDegreeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /employee-degree/employee-{employeeID}/
+// GET /employee/degree/{employeeID}
 // Request body - none
 // Response body - []dtos.EmployeeDegreeResponse
 func (h *EmployeeDegreeHandler) GetByEmployeeIDAndLanguageCode(w http.ResponseWriter, r *http.Request) {
