@@ -32,6 +32,8 @@ func (h *EmployeeDegreeHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	langCode := utils.GetLanguageFromContext(r.Context())
+	req.LanguageCode = langCode
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
@@ -98,5 +100,5 @@ func (h *EmployeeDegreeHandler) GetByEmployeeIDAndLanguageCode(w http.ResponseWr
 		return
 	}
 
-  utils.RespondWithJSON(w, r, http.StatusOK, resp)
+	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }

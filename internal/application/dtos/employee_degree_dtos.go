@@ -14,7 +14,6 @@ type CreateEmployeeDegreeRequest struct {
 	DateEnd            time.Time `json:"dateEnd" validate:"required"`
 	GivenBy            string    `json:"givenBy" validate:"required"`
 	DateDegreeRecieved time.Time `json:"dateDegreeRecieved" validate:"required"`
-	LinkToDegreeFile   string    `json:"linkToDegreeFile" validate:"required"`
 }
 
 type UpdateEmployeeDegreeRequest struct {
@@ -26,7 +25,6 @@ type UpdateEmployeeDegreeRequest struct {
 	DateEnd            *time.Time `json:"dateEnd" validate:"omitempty"`
 	GivenBy            *string    `json:"givenBy" validate:"omitempty"`
 	DateDegreeRecieved *time.Time `json:"dateDegreeRecieved" validate:"omitempty"`
-	LinkToDegreeFile   *string    `json:"linkToDegreeFile" validate:"omitempty"`
 }
 
 // ---- RESPONSE DTOs ----
@@ -40,7 +38,6 @@ type EmployeeDegreeResponse struct {
 	DateEnd            time.Time `json:"dateEnd"`
 	GivenBy            string    `json:"givenBy"`
 	DateDegreeRecieved time.Time `json:"dateDegreeRecieved"`
-	LinkToDegreeFile   string    `json:"linkToDegreeFile"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
