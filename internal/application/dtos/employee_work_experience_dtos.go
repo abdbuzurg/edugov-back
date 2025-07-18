@@ -17,8 +17,8 @@ type CreateEmployeeWorkExperienceRequest struct {
 type UpdateEmployeeWorkExperienceRequest struct {
 	ID          int64      `json:"id" validate:"required,min=1"`
 	JobTitle    *string    `json:"jobTitle" validate:"omitempty"`
-	Workplace   *string     `json:"workplace" validate:"omitempty"`
-	Description *string     `json:"description" validate:"omitempty"`
+	Workplace   *string    `json:"workplace" validate:"omitempty"`
+	Description *string    `json:"description" validate:"omitempty"`
 	DateStart   *time.Time `json:"dateStart" validate:"omitempty"`
 	DateEnd     *time.Time `json:"dateEnd" validate:"omitempty"`
 }
@@ -30,7 +30,7 @@ type EmployeeWorkExperienceResponse struct {
 	InstitutionID int64     `json:"institutionID"`
 	Workplace     string    `json:"workplace"`
 	Description   string    `json:"description"`
-	JobTitle      string    `json:"speciality"`
+	JobTitle      string    `json:"jobTitle"`
 	DateStart     time.Time `json:"dateStart"`
 	DateEnd       time.Time `json:"dateEnd"`
 	CreatedAt     time.Time `json:"createdAt"`

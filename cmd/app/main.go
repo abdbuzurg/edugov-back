@@ -57,6 +57,9 @@ func main() {
 	employeeRepo := postgres.NewPgEmployeeRepository(store)
 	employeeDetailsRepo := postgres.NewPGEmployeeDetailsRepository(store)
 	employeeDegreeRepo := postgres.NewPgEmployeeDegreeRepository(store)
+	employeeWorkExperienceRepo := postgres.NewPgEmployeeWorkExperienceRepository(store)
+	employeePublicationRepo := postgres.NewPgEmployeePublicationRepository(store)
+	employeeScientificAwardRepo := postgres.NewPgEmployeeScientificAwardRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
@@ -72,12 +75,18 @@ func main() {
 	employeeUC := usecases.NewEmployeeUsecase(employeeRepo, store, validator)
 	employeeDetailsUC := usecases.NewEmployeeDetailsUsecase(employeeDetailsRepo, store, validator)
 	employeeDegreeUC := usecases.NewEmployeeDegreeUsecase(employeeDegreeRepo, validator)
+	employeeWorkExperienceUC := usecases.NewEmployeeWorkExperienceUsecase(employeeWorkExperienceRepo, validator)
+	employeePublicationUC := usecases.NewEmployeePublicationUsecase(employeePublicationRepo, validator)
+	employeeScientificAwardUC := usecases.NewEmployeeScientificAwardUsecase(employeeScientificAwardRepo, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
 	employeeHandlers := handlers.NewEmployeeHandler(employeeUC)
 	employeeDetailsHandler := handlers.NewEmployeeDetailsHandler(employeeDetailsUC)
 	employeeDegreeHandler := handlers.NewEmployeeDegreeHandler(employeeDegreeUC)
+	employeeWorkExperienceHandler := handlers.NewEmployeeWorkExperienceHandler(employeeWorkExperienceUC)
+	employeePublicationHandler := handlers.NewEmployeePublicationHandler(employeePublicationUC)
+	employeeScientificAwardHandler := handlers.NewEmployeeScientificAwardHandler(employeeScientificAwardUC)
 
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
@@ -98,14 +107,29 @@ func main() {
 	employeeMux := http.NewServeMux()
 
 	employeeMux.HandleFunc("GET /{uid}", employeeHandlers.GetByUID)
-  // ---- employee/detials
+	// ---- employee/detials
 	employeeMux.HandleFunc("PUT /details", authMiddleware(employeeDetailsHandler.Update))
 	employeeMux.HandleFunc("GET /details/{employeeID}", employeeDetailsHandler.GetByEmployeeID)
-  // ---- employee/degree
+	// ---- employee/degree
 	employeeMux.HandleFunc("GET /degree/{employeeID}", employeeDegreeHandler.GetByEmployeeIDAndLanguageCode)
 	employeeMux.HandleFunc("PUT /degree", authMiddleware(employeeDegreeHandler.Update))
 	employeeMux.HandleFunc("POST /degree", authMiddleware(employeeDegreeHandler.Create))
 	employeeMux.HandleFunc("DELETE /degree/{id}", authMiddleware(employeeDegreeHandler.Delete))
+	// ---- employee/work-experience
+	employeeMux.HandleFunc("GET /work-experience/{employeeID}", employeeWorkExperienceHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /work-experience", employeeWorkExperienceHandler.Create)
+	employeeMux.HandleFunc("PUT /work-experience", employeeWorkExperienceHandler.Update)
+	employeeMux.HandleFunc("DELETE /work-experience/{id}", employeeWorkExperienceHandler.Delete)
+	// ---- employee/publication
+	employeeMux.HandleFunc("GET /publication/{employeeID}", employeePublicationHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /publication", employeePublicationHandler.Create)
+	employeeMux.HandleFunc("PUT /publication", employeePublicationHandler.Update)
+	employeeMux.HandleFunc("DELETE /publication/{id}", employeePublicationHandler.Delete)
+	// ---- employee/scientific-award
+	employeeMux.HandleFunc("GET /scientific-award/{employeeID}", employeeScientificAwardHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /scientific-award", employeeScientificAwardHandler.Create)
+	employeeMux.HandleFunc("PUT /scientific-award", employeeScientificAwardHandler.Update)
+	employeeMux.HandleFunc("DELETE /scientific-award/{id}", employeeScientificAwardHandler.Delete)
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 

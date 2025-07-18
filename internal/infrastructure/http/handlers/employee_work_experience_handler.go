@@ -32,6 +32,8 @@ func (h *EmployeeWorkExperienceHandler) Create(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	lang := utils.GetLanguageFromContext(r.Context())
+	req.LanguageCode = lang
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)

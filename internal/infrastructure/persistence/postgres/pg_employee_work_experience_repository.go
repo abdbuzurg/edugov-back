@@ -125,15 +125,16 @@ func (r *pgEmployeeWorkExperienceRepository) GetByEmployeeIDAndLanguageCode(ctx 
 	employeeWorkExperiences := make([]*domain.EmployeeWorkExperience, len(employeeWorkExperiencesResult))
 	for index, workExperience := range employeeWorkExperiencesResult {
 		employeeWorkExperiences[index] = &domain.EmployeeWorkExperience{
-			ID:            workExperience.ID,
-			EmployeeID:    workExperience.EmployeeID,
-			LanguageCode:  workExperience.LanguageCode,
-      Workplace: workExperience.JobTitle,
-			JobTitle:      workExperience.JobTitle,
-			DateStart:     workExperience.DateStart.Time,
-			DateEnd:       workExperience.DateEnd.Time,
-			CreatedAt:     workExperience.CreatedAt.Time,
-			UpdatedAt:     workExperience.UpdatedAt.Time,
+			ID:           workExperience.ID,
+			EmployeeID:   workExperience.EmployeeID,
+			LanguageCode: workExperience.LanguageCode,
+			Workplace:    workExperience.Workplace,
+			Description:  workExperience.Description,
+			JobTitle:     workExperience.JobTitle,
+			DateStart:    workExperience.DateStart.Time,
+			DateEnd:      workExperience.DateEnd.Time,
+			CreatedAt:    workExperience.CreatedAt.Time,
+			UpdatedAt:    workExperience.UpdatedAt.Time,
 		}
 	}
 
