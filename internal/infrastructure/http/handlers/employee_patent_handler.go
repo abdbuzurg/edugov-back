@@ -32,6 +32,7 @@ func (h *EmployeePatentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+  req.LanguageCode = utils.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)

@@ -120,7 +120,7 @@ func (q *Queries) GetEmployeeParticipationInProfessionalCommunitysByEmployeeIDAn
 const updateEmployeeParticipationInProfessionalCommunity = `-- name: UpdateEmployeeParticipationInProfessionalCommunity :one
 UPDATE employee_participation_in_professional_communities 
 SET 
-  professional_community_title = COALESCE($1, professional_community_titl),
+  professional_community_title = COALESCE($1, professional_community_title),
   role_in_professional_community = COALESCE($2, role_in_professional_community),
   updated_at = now()
 WHERE id = $3

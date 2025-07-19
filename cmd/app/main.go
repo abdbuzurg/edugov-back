@@ -60,6 +60,8 @@ func main() {
 	employeeWorkExperienceRepo := postgres.NewPgEmployeeWorkExperienceRepository(store)
 	employeePublicationRepo := postgres.NewPgEmployeePublicationRepository(store)
 	employeeScientificAwardRepo := postgres.NewPgEmployeeScientificAwardRepository(store)
+	employeePatentRepo := postgres.NewPgEmployeePatentRepository(store)
+  employeePIPCRepo := postgres.NewPgEmployeeParticipationInProfessionalCommunityRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
@@ -78,6 +80,8 @@ func main() {
 	employeeWorkExperienceUC := usecases.NewEmployeeWorkExperienceUsecase(employeeWorkExperienceRepo, validator)
 	employeePublicationUC := usecases.NewEmployeePublicationUsecase(employeePublicationRepo, validator)
 	employeeScientificAwardUC := usecases.NewEmployeeScientificAwardUsecase(employeeScientificAwardRepo, validator)
+	employeePatentUC := usecases.NewEmployeePatentUsecase(employeePatentRepo, validator)
+  employeePIPCUC := usecases.NewEmployeeParticipationInProfessionalCommunityUsecase(employeePIPCRepo, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
@@ -87,6 +91,8 @@ func main() {
 	employeeWorkExperienceHandler := handlers.NewEmployeeWorkExperienceHandler(employeeWorkExperienceUC)
 	employeePublicationHandler := handlers.NewEmployeePublicationHandler(employeePublicationUC)
 	employeeScientificAwardHandler := handlers.NewEmployeeScientificAwardHandler(employeeScientificAwardUC)
+	employeePatentHandler := handlers.NewEmployeePatentHandler(employeePatentUC)
+  employeePIPCHandler := handlers.NewEmployeeParticipationInProfessionalCommunityHandler(employeePIPCUC)
 
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
@@ -130,6 +136,16 @@ func main() {
 	employeeMux.HandleFunc("POST /scientific-award", employeeScientificAwardHandler.Create)
 	employeeMux.HandleFunc("PUT /scientific-award", employeeScientificAwardHandler.Update)
 	employeeMux.HandleFunc("DELETE /scientific-award/{id}", employeeScientificAwardHandler.Delete)
+	// --- employee/patent
+	employeeMux.HandleFunc("GET /patent/{employeeID}", employeePatentHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /patent", employeePatentHandler.Create)
+	employeeMux.HandleFunc("PUT /patent", employeePatentHandler.Update)
+	employeeMux.HandleFunc("DELETE /patent/{id}", employeePatentHandler.Delete)
+  // --- employee/pipc
+  employeeMux.HandleFunc("GET /pipc/{employeeID}", employeePIPCHandler.GetByEmployeeIDAndLanguageCode)
+  employeeMux.HandleFunc("POST /pipc", employeePIPCHandler.Create)
+  employeeMux.HandleFunc("PUT /pipc", employeePIPCHandler.Update)
+  employeeMux.HandleFunc("DELETE /pipc/{id}", employeePIPCHandler.Delete)
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 
