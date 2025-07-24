@@ -9,7 +9,7 @@ type CreateEmployeeDetailsRequest struct {
 	Surname              string `json:"surname" validate:"required"`
 	Name                 string `json:"name" validate:"required"`
 	Middlename           string `json:"middlename" validate:"required"`
-	IsEmployeeDetailsNew bool   `json:"isNewEmployeeDetailsNew" validate:"required"`
+	IsEmployeeDetailsNew bool   `json:"isNewEmployeeDetails" validate:"required"`
 }
 
 type UpdateEmployeeDetailsRequest struct {
@@ -18,7 +18,7 @@ type UpdateEmployeeDetailsRequest struct {
 	Surname              *string `json:"surname"`
 	Name                 *string `json:"name"`
 	Middlename           *string `json:"middlename"`
-	IsEmployeeDetailsNew *bool   `json:"isNewEmployeeDetailsNew"`
+	IsEmployeeDetailsNew *bool   `json:"isNewEmployeeDetails"`
 }
 
 type UpdateFullEmployeeData struct {

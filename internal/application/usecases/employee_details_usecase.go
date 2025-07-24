@@ -16,7 +16,7 @@ import (
 )
 
 type EmployeeDetailsUsecase interface {
-  GetByEmployeeIDAndLanguageCode(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error)
+	GetByEmployeeIDAndLanguageCode(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error)
 	Update(ctx context.Context, req []dtos.UpdateEmployeeDetailsRequest) ([]*dtos.EmployeeDetailsResponse, error)
 }
 
@@ -39,22 +39,22 @@ func NewEmployeeDetailsUsecase(
 }
 
 func (uc *employeeDetailsUsecase) GetByEmployeeIDAndLanguageCode(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error) {
-  if req <= 0 {
-    return nil, custom_errors.BadRequest(fmt.Errorf("invalid input to retrive employee details: incorrect employee id"))
-  }
+	if req <= 0 {
+		return nil, custom_errors.BadRequest(fmt.Errorf("invalid input to retrive employee details: incorrect employee id"))
+	}
 
-  lang := utils.GetLanguageFromContext(ctx)
-  employeeDetails, err := uc.employeeDetailsRepo.GetByEmployeeIDAndLanguageCode(ctx, req, lang)
-  if err != nil {
-    return nil, err
-  }
+	lang := utils.GetLanguageFromContext(ctx)
+	employeeDetails, err := uc.employeeDetailsRepo.GetByEmployeeIDAndLanguageCode(ctx, req, lang)
+	if err != nil {
+		return nil, err
+	}
 
-  resp := make([]*dtos.EmployeeDetailsResponse, len(employeeDetails))
-  for index, details := range employeeDetails {
-    resp[index] = mappers.MapEmployeeDetailsDomainIntoResponseDTO(details)
-  }
+	resp := make([]*dtos.EmployeeDetailsResponse, len(employeeDetails))
+	for index, details := range employeeDetails {
+		resp[index] = mappers.MapEmployeeDetailsDomainIntoResponseDTO(details)
+	}
 
-  return resp, nil
+	return resp, nil
 }
 
 func (uc *employeeDetailsUsecase) Update(ctx context.Context, req []dtos.UpdateEmployeeDetailsRequest) ([]*dtos.EmployeeDetailsResponse, error) {
@@ -67,14 +67,14 @@ func (uc *employeeDetailsUsecase) Update(ctx context.Context, req []dtos.UpdateE
 	resp := []*dtos.EmployeeDetailsResponse{}
 	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txEmployeeDetailsRepo := postgres.NewPGEmployeeDetailsRepositoryWithQueries(q)
-    langCode := utils.GetLanguageFromContext(ctx)
+		langCode := utils.GetLanguageFromContext(ctx)
 
 		newDetails := make([]*domain.EmployeeDetails, len(req))
 		for index, details := range req {
 			newDetails[index] = &domain.EmployeeDetails{
-				ID:         details.ID,
-				EmployeeID: details.EmployeeID,
-        LanguageCode: langCode,
+				ID:           details.ID,
+				EmployeeID:   details.EmployeeID,
+				LanguageCode: langCode,
 			}
 
 			if details.Name != nil {

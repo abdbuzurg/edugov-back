@@ -16,8 +16,9 @@ SET
   surname = COALESCE($1, surname),
   name = COALESCE($2, name),
   middlename = COALESCE($3, middlename),
+  is_employee_details_new = COALESCE($4, is_employee_details_new),
   updated_at = now()
-WHERE id = $4
+WHERE id = $5
 RETURNING id, created_at, updated_at;
 
 -- name: DeleteEmployeeDetails :exec

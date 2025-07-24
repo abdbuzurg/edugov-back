@@ -1,4 +1,5 @@
 package postgres
+
 import (
 	"backend/internal/application/repositories"
 	"backend/internal/domain"
@@ -48,10 +49,11 @@ func (r *pgEmployeeDetailsRepository) Create(ctx context.Context, employeeDetail
 
 func (r *pgEmployeeDetailsRepository) Update(ctx context.Context, employeeDetails *domain.EmployeeDetails) (*domain.EmployeeDetails, error) {
 	updatedEmployeeDetails, err := r.queries.UpdateEmployeeDetails(ctx, sqlc.UpdateEmployeeDetailsParams{
-		Surname:    employeeDetails.Surname,
-		Name:       employeeDetails.Name,
-		Middlename: employeeDetails.Middlename,
-		ID:         employeeDetails.ID,
+		Surname:              employeeDetails.Surname,
+		Name:                 employeeDetails.Name,
+		Middlename:           employeeDetails.Middlename,
+		ID:                   employeeDetails.ID,
+		IsEmployeeDetailsNew: employeeDetails.IsEmployeeDetailsNew,
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to update employee_detials: %w", err))
@@ -114,5 +116,5 @@ func (r *pgEmployeeDetailsRepository) GetByEmployeeIDAndLanguageCode(ctx context
 		}
 	}
 
-  return employeeDetails, nil
+	return employeeDetails, nil
 }

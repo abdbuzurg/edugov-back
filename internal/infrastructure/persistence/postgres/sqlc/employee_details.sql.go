@@ -133,16 +133,18 @@ SET
   surname = COALESCE($1, surname),
   name = COALESCE($2, name),
   middlename = COALESCE($3, middlename),
+  is_employee_details_new = COALESCE($4, is_employee_details_new),
   updated_at = now()
-WHERE id = $4
+WHERE id = $5
 RETURNING id, created_at, updated_at
 `
 
 type UpdateEmployeeDetailsParams struct {
-	Surname    string `json:"surname"`
-	Name       string `json:"name"`
-	Middlename string `json:"middlename"`
-	ID         int64  `json:"id"`
+	Surname              string `json:"surname"`
+	Name                 string `json:"name"`
+	Middlename           string `json:"middlename"`
+	IsEmployeeDetailsNew bool   `json:"is_employee_details_new"`
+	ID                   int64  `json:"id"`
 }
 
 type UpdateEmployeeDetailsRow struct {
@@ -156,6 +158,7 @@ func (q *Queries) UpdateEmployeeDetails(ctx context.Context, arg UpdateEmployeeD
 		arg.Surname,
 		arg.Name,
 		arg.Middlename,
+		arg.IsEmployeeDetailsNew,
 		arg.ID,
 	)
 	var i UpdateEmployeeDetailsRow
