@@ -30,7 +30,7 @@ func (h *employeeDetailsHandler) GetByEmployeeID(w http.ResponseWriter, r *http.
     return
   }
 
-  resp, err := h.employeeDetailsUC.GetByEmployeeIDAndLanguageCode(r.Context(), employeeID)
+  resp, err := h.employeeDetailsUC.GetByEmployeeID(r.Context(), employeeID)
   if err != nil {
     utils.RespondWithError(w, r, err)
     return 

@@ -29,6 +29,7 @@ type UpdateFullEmployeeData struct {
 
 type EmployeeDetailsResponse struct {
 	ID                   int64     `json:"id"`
+	LanguageCode         string    `json:"languageCode"`
 	Surname              string    `json:"surname"`
 	Name                 string    `json:"name"`
 	Middlename           string    `json:"middlename"`

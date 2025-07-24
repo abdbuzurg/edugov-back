@@ -19,5 +19,5 @@ type EmployeeDetailsRepository interface {
 	GetByID(ctx context.Context, id int64) (*domain.EmployeeDetails, error)
 
 	//GetByEmployeeIDAndLanguageCode - retrives a single employee degree data by EmployeeID and specified language code
-	GetByEmployeeIDAndLanguageCode(ctx context.Context, employeeID int64, langCode string) ([]*domain.EmployeeDetails, error)
+	GetByEmployeeID(ctx context.Context, employeeID int64) ([]*domain.EmployeeDetails, error)
 }

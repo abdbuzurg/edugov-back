@@ -30,7 +30,7 @@ SELECT *
 FROM employee_details
 WHERE id = $1;
 
--- name: GetEmployeeDetailsByEmployeeIDAndLanguageCode :many
+-- name: GetEmployeeDetailsByEmployeeID :many
 SELECT *
 FROM employee_details
-WHERE employee_id = $1 and language_code = $2;
+WHERE employee_id = $1;

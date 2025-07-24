@@ -9,10 +9,11 @@ import (
 )
 
 type Employee struct {
-	ID        int64              `json:"id"`
-	UniqueID  string             `json:"unique_id"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID             int64              `json:"id"`
+	UniqueID       string             `json:"unique_id"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ProfilePicture pgtype.Text        `json:"profile_picture"`
 }
 
 type EmployeeDegree struct {

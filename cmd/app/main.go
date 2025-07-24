@@ -113,6 +113,9 @@ func main() {
 	employeeMux := http.NewServeMux()
 
 	employeeMux.HandleFunc("GET /{uid}", employeeHandlers.GetByUID)
+  employeeMux.HandleFunc("PUT /profile-picture/{uid}", employeeHandlers.UpdateProfilePicture)
+  employeeMux.HandleFunc("GET /profile-picture/{uid}", employeeHandlers.GetProfilePicture)
+  
 	// ---- employee/detials
 	employeeMux.HandleFunc("PUT /details", authMiddleware(employeeDetailsHandler.Update))
 	employeeMux.HandleFunc("GET /details/{employeeID}", employeeDetailsHandler.GetByEmployeeID)

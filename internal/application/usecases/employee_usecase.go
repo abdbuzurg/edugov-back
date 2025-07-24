@@ -15,6 +15,8 @@ import (
 )
 
 type EmployeeUsecase interface {
+	GetProfilePictureFileNameByUniqueID(ctx context.Context, uid string) (*string, error)
+	UpdateProfilePicture(ctx context.Context, uid string, profilePictureFileName string) error
 	Delete(ctx context.Context, id int64) error
 	GetByUniqueID(ctx context.Context, uniqueID string) (*dtos.EmployeeResponse, error)
 }
@@ -35,6 +37,14 @@ func NewEmployeeUsecase(
 		store:        store,
 		validator:    validator,
 	}
+}
+
+func (uc *employeeUsecase) GetProfilePictureFileNameByUniqueID(ctx context.Context, uid string) (*string, error) {
+  return uc.GetProfilePictureFileNameByUniqueID(ctx, uid)
+}
+
+func (uc *employeeUsecase) UpdateProfilePicture(ctx context.Context, uid string, profilePictureFileName string) error {
+	return nil
 }
 
 func (uc *employeeUsecase) Delete(ctx context.Context, id int64) error {
@@ -65,7 +75,7 @@ func (uc *employeeUsecase) GetByUniqueID(ctx context.Context, uniqueID string) (
 		txEmployeeRefresherCourseRepo := postgres.NewPgEmployeeRefresherCourseRepositoryWithQuery(q)
 		txEmployeeParticipationInEvenRepo := postgres.NewPgEmployeeParticipationInEventRepositoryWithQuery(q)
 		txEmployeeResearchActivityRepo := postgres.NewPgEmployeeResearchActivityRepositoryWithQueries(q)
-    txEmployeeSocialRepo := postgres.NewPgEmployeeSocialRepositoryWithQueries(q)
+		txEmployeeSocialRepo := postgres.NewPgEmployeeSocialRepositoryWithQueries(q)
 
 		employee, err := txEmployeeRepo.GetByUniqueID(ctx, uniqueID)
 		if err != nil && !custom_errors.IsNotFound(err) {
@@ -76,7 +86,7 @@ func (uc *employeeUsecase) GetByUniqueID(ctx context.Context, uniqueID string) (
 		resp = mappers.MapEmployeeDomainToResponseDTO(employee)
 
 		//Employee Details
-		employeeDetails, err := txEmployeeDetailsRepo.GetByEmployeeIDAndLanguageCode(ctx, employee.ID, langCode)
+		employeeDetails, err := txEmployeeDetailsRepo.GetByEmployeeID(ctx, employee.ID)
 		if err != nil && !custom_errors.IsNotFound(err) {
 			return err
 		}
@@ -184,24 +194,24 @@ func (uc *employeeUsecase) GetByUniqueID(ctx context.Context, uniqueID string) (
 		}
 
 		//Employee Research Activities
-    employeeRAs, err := txEmployeeResearchActivityRepo.GetByEmployeeIDAndLanguageCode(ctx, employee.ID, langCode)
-    if err != nil && !custom_errors.IsNotFound(err) {
-      return err
-    }
-    resp.ResearchActivities = make([]*dtos.EmployeeResearchActivityResponse, len(employeeRAs))
-    for index, ra := range employeeRAs {
-      resp.ResearchActivities[index] = mappers.MapEmployeeResearchActivityDomainToResponseDTO(ra)
-    }
+		employeeRAs, err := txEmployeeResearchActivityRepo.GetByEmployeeIDAndLanguageCode(ctx, employee.ID, langCode)
+		if err != nil && !custom_errors.IsNotFound(err) {
+			return err
+		}
+		resp.ResearchActivities = make([]*dtos.EmployeeResearchActivityResponse, len(employeeRAs))
+		for index, ra := range employeeRAs {
+			resp.ResearchActivities[index] = mappers.MapEmployeeResearchActivityDomainToResponseDTO(ra)
+		}
 
-    //Employee Socials
-    employeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, employee.ID)
-    if err != nil && !custom_errors.IsNotFound(err) {
-      return err
-    }
-    resp.Socials = make([]*dtos.EmployeeSocialResponse, len(employeeSocials))
-    for index, social := range employeeSocials {
-      resp.Socials[index] = mappers.MapEmployeeSocialDomainToResponseDTO(social)
-    }
+		//Employee Socials
+		employeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, employee.ID)
+		if err != nil && !custom_errors.IsNotFound(err) {
+			return err
+		}
+		resp.Socials = make([]*dtos.EmployeeSocialResponse, len(employeeSocials))
+		for index, social := range employeeSocials {
+			resp.Socials[index] = mappers.MapEmployeeSocialDomainToResponseDTO(social)
+		}
 
 		return nil
 	})

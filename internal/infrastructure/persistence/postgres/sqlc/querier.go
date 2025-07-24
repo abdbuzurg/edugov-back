@@ -6,6 +6,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -75,7 +77,7 @@ type Querier interface {
 	GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID string) (Employee, error)
 	GetEmployeeDegreeByID(ctx context.Context, id int64) (EmployeeDegree, error)
 	GetEmployeeDegreesByEmployeeIDAndLanguageCode(ctx context.Context, arg GetEmployeeDegreesByEmployeeIDAndLanguageCodeParams) ([]EmployeeDegree, error)
-	GetEmployeeDetailsByEmployeeIDAndLanguageCode(ctx context.Context, arg GetEmployeeDetailsByEmployeeIDAndLanguageCodeParams) ([]EmployeeDetail, error)
+	GetEmployeeDetailsByEmployeeID(ctx context.Context, employeeID int64) ([]EmployeeDetail, error)
 	GetEmployeeDetailsByID(ctx context.Context, id int64) (EmployeeDetail, error)
 	GetEmployeeMainResearchAreaByID(ctx context.Context, id int64) (EmployeeMainResearchArea, error)
 	GetEmployeeMainResearchAreaKeyTopicByID(ctx context.Context, id int64) (EmployeeMainResearchAreaKeyTopic, error)
@@ -128,6 +130,7 @@ type Querier interface {
 	GetInstitutionResearchSupportInfrastructuresByInstitutionIDAndLanguageCode(ctx context.Context, arg GetInstitutionResearchSupportInfrastructuresByInstitutionIDAndLanguageCodeParams) ([]InstitutionResearchSupportInfrastructure, error)
 	GetInstitutionSocialByID(ctx context.Context, id int64) (InstitutionSocial, error)
 	GetInstitutionSocialsByInstitutionID(ctx context.Context, institutionID int64) ([]InstitutionSocial, error)
+	GetProfilePicutreFileNameByUniqueID(ctx context.Context, uniqueID string) (pgtype.Text, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserSessionByToken(ctx context.Context, refreshToken string) (UserSession, error)
@@ -159,6 +162,7 @@ type Querier interface {
 	UpdateInstitutionRanking(ctx context.Context, arg UpdateInstitutionRankingParams) (UpdateInstitutionRankingRow, error)
 	UpdateInstitutionResearchSupportInfrastructure(ctx context.Context, arg UpdateInstitutionResearchSupportInfrastructureParams) (UpdateInstitutionResearchSupportInfrastructureRow, error)
 	UpdateInstitutionSocial(ctx context.Context, arg UpdateInstitutionSocialParams) (UpdateInstitutionSocialRow, error)
+	UpdateProfilePicture(ctx context.Context, arg UpdateProfilePictureParams) error
 	UpdateUserSession(ctx context.Context, arg UpdateUserSessionParams) (UpdateUserSessionRow, error)
 }
 

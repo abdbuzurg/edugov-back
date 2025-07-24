@@ -63,19 +63,14 @@ func (q *Queries) DeleteEmployeeDetails(ctx context.Context, id int64) error {
 	return err
 }
 
-const getEmployeeDetailsByEmployeeIDAndLanguageCode = `-- name: GetEmployeeDetailsByEmployeeIDAndLanguageCode :many
+const getEmployeeDetailsByEmployeeID = `-- name: GetEmployeeDetailsByEmployeeID :many
 SELECT id, employee_id, language_code, surname, name, middlename, is_employee_details_new, created_at, updated_at
 FROM employee_details
-WHERE employee_id = $1 and language_code = $2
+WHERE employee_id = $1
 `
 
-type GetEmployeeDetailsByEmployeeIDAndLanguageCodeParams struct {
-	EmployeeID   int64  `json:"employee_id"`
-	LanguageCode string `json:"language_code"`
-}
-
-func (q *Queries) GetEmployeeDetailsByEmployeeIDAndLanguageCode(ctx context.Context, arg GetEmployeeDetailsByEmployeeIDAndLanguageCodeParams) ([]EmployeeDetail, error) {
-	rows, err := q.db.Query(ctx, getEmployeeDetailsByEmployeeIDAndLanguageCode, arg.EmployeeID, arg.LanguageCode)
+func (q *Queries) GetEmployeeDetailsByEmployeeID(ctx context.Context, employeeID int64) ([]EmployeeDetail, error) {
+	rows, err := q.db.Query(ctx, getEmployeeDetailsByEmployeeID, employeeID)
 	if err != nil {
 		return nil, err
 	}

@@ -16,7 +16,7 @@ import (
 )
 
 type EmployeeDetailsUsecase interface {
-	GetByEmployeeIDAndLanguageCode(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error)
+	GetByEmployeeID(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error)
 	Update(ctx context.Context, req []dtos.UpdateEmployeeDetailsRequest) ([]*dtos.EmployeeDetailsResponse, error)
 }
 
@@ -38,13 +38,12 @@ func NewEmployeeDetailsUsecase(
 	}
 }
 
-func (uc *employeeDetailsUsecase) GetByEmployeeIDAndLanguageCode(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error) {
+func (uc *employeeDetailsUsecase) GetByEmployeeID(ctx context.Context, req int64) ([]*dtos.EmployeeDetailsResponse, error) {
 	if req <= 0 {
 		return nil, custom_errors.BadRequest(fmt.Errorf("invalid input to retrive employee details: incorrect employee id"))
 	}
 
-	lang := utils.GetLanguageFromContext(ctx)
-	employeeDetails, err := uc.employeeDetailsRepo.GetByEmployeeIDAndLanguageCode(ctx, req, lang)
+	employeeDetails, err := uc.employeeDetailsRepo.GetByEmployeeID(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +93,7 @@ func (uc *employeeDetailsUsecase) Update(ctx context.Context, req []dtos.UpdateE
 			}
 		}
 
-		lang := utils.GetLanguageFromContext(ctx)
-		oldDetails, err := txEmployeeDetailsRepo.GetByEmployeeIDAndLanguageCode(ctx, newDetails[0].EmployeeID, lang)
+		oldDetails, err := txEmployeeDetailsRepo.GetByEmployeeID(ctx, newDetails[0].EmployeeID)
 		if err != nil && !custom_errors.IsNotFound(err) {
 			return err
 		}

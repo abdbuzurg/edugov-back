@@ -43,7 +43,7 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
 }
 
 const getEmployeeByID = `-- name: GetEmployeeByID :one
-SELECT id, unique_id, created_at, updated_at
+SELECT id, unique_id, created_at, updated_at, profile_picture
 FROM employees
 WHERE id = $1
 `
@@ -56,12 +56,13 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (Employee, erro
 		&i.UniqueID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ProfilePicture,
 	)
 	return i, err
 }
 
 const getEmployeeByUniqueIdentifier = `-- name: GetEmployeeByUniqueIdentifier :one
-SELECT id, unique_id, created_at, updated_at
+SELECT id, unique_id, created_at, updated_at, profile_picture
 FROM employees
 WHERE unique_id = $1
 `
@@ -74,6 +75,37 @@ func (q *Queries) GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID st
 		&i.UniqueID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ProfilePicture,
 	)
 	return i, err
+}
+
+const getProfilePicutreFileNameByUniqueID = `-- name: GetProfilePicutreFileNameByUniqueID :one
+SELECT profile_picture
+FROM employees
+WHERE unique_id = $1
+`
+
+func (q *Queries) GetProfilePicutreFileNameByUniqueID(ctx context.Context, uniqueID string) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, getProfilePicutreFileNameByUniqueID, uniqueID)
+	var profile_picture pgtype.Text
+	err := row.Scan(&profile_picture)
+	return profile_picture, err
+}
+
+const updateProfilePicture = `-- name: UpdateProfilePicture :exec
+UPDATE employees
+SET 
+  profile_picture = COALESCE($1, profile_picture)
+WHERE unique_id = $2
+`
+
+type UpdateProfilePictureParams struct {
+	ProfilePicture pgtype.Text `json:"profile_picture"`
+	UniqueID       string      `json:"unique_id"`
+}
+
+func (q *Queries) UpdateProfilePicture(ctx context.Context, arg UpdateProfilePictureParams) error {
+	_, err := q.db.Exec(ctx, updateProfilePicture, arg.ProfilePicture, arg.UniqueID)
+	return err
 }

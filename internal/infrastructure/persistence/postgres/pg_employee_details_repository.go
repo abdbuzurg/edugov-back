@@ -92,13 +92,10 @@ func (r *pgEmployeeDetailsRepository) GetByID(ctx context.Context, id int64) (*d
 	}, nil
 }
 
-func (r *pgEmployeeDetailsRepository) GetByEmployeeIDAndLanguageCode(ctx context.Context, employeeID int64, langCode string) ([]*domain.EmployeeDetails, error) {
-	employeeDetailsResults, err := r.queries.GetEmployeeDetailsByEmployeeIDAndLanguageCode(ctx, sqlc.GetEmployeeDetailsByEmployeeIDAndLanguageCodeParams{
-		LanguageCode: langCode,
-		EmployeeID:   employeeID,
-	})
+func (r *pgEmployeeDetailsRepository) GetByEmployeeID(ctx context.Context, employeeID int64) ([]*domain.EmployeeDetails, error) {
+	employeeDetailsResults, err := r.queries.GetEmployeeDetailsByEmployeeID(ctx, employeeID)
 	if err != nil {
-		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee details by language code(%s) and employeeID(%d): %w", langCode, employeeID, err))
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee details and employeeID(%d): %w", employeeID, err))
 	}
 
 	employeeDetails := make([]*domain.EmployeeDetails, len(employeeDetailsResults))

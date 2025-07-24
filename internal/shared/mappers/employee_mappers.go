@@ -25,6 +25,7 @@ func MapEmployeeDetailsDomainIntoResponseDTO(employeeDetails *domain.EmployeeDet
 
 	return &dtos.EmployeeDetailsResponse{
 		ID:                   employeeDetails.ID,
+		LanguageCode:         employeeDetails.LanguageCode,
 		Surname:              employeeDetails.Surname,
 		Name:                 employeeDetails.Name,
 		Middlename:           employeeDetails.Middlename,
@@ -171,11 +172,11 @@ func MapEmployeeParticipationInEventDomainToResponseDTO(employeeParticipationInE
 	}
 
 	return &dtos.EmployeeParticipationInEventResponse{
-		ID:                             employeeParticipationInEvent.ID,
-		EventTitle:                     employeeParticipationInEvent.EventTitle,
-		EventDate:                      employeeParticipationInEvent.EventDate,
-		CreatedAt:                      employeeParticipationInEvent.CreatedAt,
-		UpdatedAt:                      employeeParticipationInEvent.UpdatedAt,
+		ID:         employeeParticipationInEvent.ID,
+		EventTitle: employeeParticipationInEvent.EventTitle,
+		EventDate:  employeeParticipationInEvent.EventDate,
+		CreatedAt:  employeeParticipationInEvent.CreatedAt,
+		UpdatedAt:  employeeParticipationInEvent.UpdatedAt,
 	}
 }
 

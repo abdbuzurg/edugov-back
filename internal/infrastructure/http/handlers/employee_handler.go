@@ -5,7 +5,10 @@ import (
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/utils"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -17,6 +20,69 @@ func NewEmployeeHandler(employeeUC usecases.EmployeeUsecase) *EmployeeHandler {
 	return &EmployeeHandler{
 		employeeUC: employeeUC,
 	}
+}
+
+// PUT /employee/profile-picture/{uid}
+// Request body - image file
+// Response body - none
+func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
+	const MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+		utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("The uploaded file is too big. Please choose an image that is less than 10MB in size.")))
+		return
+	}
+
+	file, handler, err := r.FormFile("profilePicture")
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("Error retrieving the file")))
+		return
+	}
+	defer file.Close()
+
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("Error reading file for type detection")))
+		return
+	}
+
+	filetype := http.DetectContentType(buff)
+	if filetype != "image/jpeg" && filetype != "image/png" {
+		utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("The provided file format is not allowed. Please upload a JPEG or PNG image")))
+		return
+	}
+
+	uid := r.PathValue("uid")
+	profilePictureFileName := uid + filepath.Ext(handler.Filename)
+
+	executablePath, err := os.Executable()
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("Error locating executable path: %w", err)))
+		return
+	}
+	executableDir := filepath.Dir(executablePath)
+	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile picture/")
+
+	dst, err := os.Create(filepath.Join(profilePictureDir, profilePictureFileName))
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("%w", err)))
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("%w", err)))
+		return
+	}
+
+	if err := h.employeeUC.UpdateProfilePicture(r.Context(), uid, profilePictureFileName); err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	utils.RespondWithJSON(w, r, http.StatusOK, nil)
 }
 
 // DELETE /employee/{id}
@@ -48,5 +114,30 @@ func (h *EmployeeHandler) GetByUID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  utils.RespondWithJSON(w, r, http.StatusOK, resp)
+	utils.RespondWithJSON(w, r, http.StatusOK, resp)
+}
+
+// GET /employee/profile-picture/{uid}
+// Request body - none
+// Response body - none
+func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Request) {
+	uid := r.PathValue("uid")
+
+	profilePictureFileName, err := h.employeeUC.GetProfilePictureFileNameByUniqueID(r.Context(), uid)
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	executablePath, err := os.Executable()
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("Error locating executable path: %w", err)))
+		return
+	}
+	executableDir := filepath.Dir(executablePath)
+	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile picture/")
+
+	filePath := filepath.Join(profilePictureDir, *profilePictureFileName)
+
+	http.ServeFile(w, r, filePath)
 }

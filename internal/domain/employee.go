@@ -3,10 +3,11 @@ package domain
 import "time"
 
 type Employee struct {
-	ID        int64
-	UniqueID  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID             int64
+	UniqueID       string
+	ProfilePicture string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 
 	Degrees                                []EmployeeDegree
 	Details                                []*EmployeeDetails
