@@ -40,11 +40,11 @@ func NewEmployeeUsecase(
 }
 
 func (uc *employeeUsecase) GetProfilePictureFileNameByUniqueID(ctx context.Context, uid string) (*string, error) {
-  return uc.GetProfilePictureFileNameByUniqueID(ctx, uid)
+	return uc.employeeRepo.GetProfilePictureFileNameByUniqueID(ctx, uid)
 }
 
 func (uc *employeeUsecase) UpdateProfilePicture(ctx context.Context, uid string, profilePictureFileName string) error {
-	return nil
+	return uc.employeeRepo.UpdateProfilePicture(ctx, uid, profilePictureFileName)
 }
 
 func (uc *employeeUsecase) Delete(ctx context.Context, id int64) error {

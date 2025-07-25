@@ -11,10 +11,11 @@ func MapEmployeeDomainToResponseDTO(employee *domain.Employee) *dtos.EmployeeRes
 	}
 
 	return &dtos.EmployeeResponse{
-		ID:        employee.ID,
-		UniqueID:  employee.UniqueID,
-		CreatedAt: employee.CreatedAt,
-		UpdatedAt: employee.UpdatedAt,
+		ID:             employee.ID,
+		UniqueID:       employee.UniqueID,
+		ProfilePicture: employee.ProfilePicture,
+		CreatedAt:      employee.CreatedAt,
+		UpdatedAt:      employee.UpdatedAt,
 	}
 }
 

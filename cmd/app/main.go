@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -42,11 +41,6 @@ func main() {
 	}
 	defer pool.Close()
 	log.Println("Database connection established")
-
-	// --- Database Migrations
-	log.Println("Applying database migrations...")
-	runMigrations(cfg.DatabaseURL)
-	log.Println("Database migration applying successfully")
 
 	// ---- Initilization of Store ----
 	store := postgres.NewStore(pool)
@@ -111,11 +105,10 @@ func main() {
 
 	//Employee Handlers
 	employeeMux := http.NewServeMux()
-
 	employeeMux.HandleFunc("GET /{uid}", employeeHandlers.GetByUID)
-  employeeMux.HandleFunc("PUT /profile-picture/{uid}", employeeHandlers.UpdateProfilePicture)
-  employeeMux.HandleFunc("GET /profile-picture/{uid}", employeeHandlers.GetProfilePicture)
-  
+	employeeMux.HandleFunc("PUT /profile-picture/{uid}", employeeHandlers.UpdateProfilePicture)
+	employeeMux.HandleFunc("GET /profile-picture/{uid}", employeeHandlers.GetProfilePicture)
+
 	// ---- employee/detials
 	employeeMux.HandleFunc("PUT /details", authMiddleware(employeeDetailsHandler.Update))
 	employeeMux.HandleFunc("GET /details/{employeeID}", employeeDetailsHandler.GetByEmployeeID)
@@ -190,26 +183,4 @@ func main() {
 	}
 
 	log.Println("Server exited gracefully")
-}
-
-func runMigrations(dbURL string) {
-	m, err := migrate.New(
-		"file://internal/infrastructure/persistence/postgres/migrations",
-		dbURL,
-	)
-
-	if err != nil {
-		log.Fatalf("Failed to create migration instance: %v", err)
-	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("Failed to run database migrations: %v", err)
-	}
-	version, dirty, err := m.Version()
-	if err != nil && err != migrate.ErrNilVersion {
-		log.Printf("Could not get database version: %v", err)
-	} else if err == migrate.ErrNilVersion {
-		log.Fatalf("Database is at version 0 (no migration applied yet)")
-	} else {
-		log.Printf("Database version: %d (dirty: %t)", version, dirty)
-	}
 }
