@@ -15,6 +15,7 @@ type CreateEmployeeDetailsRequest struct {
 type UpdateEmployeeDetailsRequest struct {
 	ID                   int64   `json:"id" validate:"min=0"`
 	EmployeeID           int64   `json:"employeeID" validate:"required,min=1"`
+	LanguageCode         string  `json:"languageCode" validate:"required,len=2"`
 	Surname              *string `json:"surname"`
 	Name                 *string `json:"name"`
 	Middlename           *string `json:"middlename"`

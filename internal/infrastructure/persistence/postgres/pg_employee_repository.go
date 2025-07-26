@@ -7,8 +7,6 @@ import (
 	"backend/internal/shared/custom_errors"
 	"context"
 	"fmt"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type pgEmployeeRepository struct {
@@ -40,21 +38,6 @@ func (r *pgEmployeeRepository) Create(ctx context.Context, employee *domain.Empl
 	employee.UpdatedAt = employeeResult.UpdatedAt.Time
 
 	return employee, nil
-}
-
-func (r *pgEmployeeRepository) UpdateProfilePicture(ctx context.Context, uid string, profilePicture string) error {
-	err := r.queries.UpdateProfilePicture(ctx, sqlc.UpdateProfilePictureParams{
-		UniqueID: uid,
-		ProfilePicture: pgtype.Text{
-			String: profilePicture,
-			Valid:  true,
-		},
-	})
-	if err != nil {
-		return custom_errors.InternalServerError(fmt.Errorf("failed to update employee profile picture: %w", err))
-	}
-
-	return nil
 }
 
 func (r *pgEmployeeRepository) Delete(ctx context.Context, id int64) error {
@@ -92,13 +75,4 @@ func (r *pgEmployeeRepository) GetByUniqueID(ctx context.Context, uniqueIdentife
 		CreatedAt: employeeResult.CreatedAt.Time,
 		UpdatedAt: employeeResult.UpdatedAt.Time,
 	}, nil
-}
-
-func (r *pgEmployeeRepository) GetProfilePictureFileNameByUniqueID(ctx context.Context, uid string) (*string, error) {
-	profilePictureFile, err := r.queries.GetProfilePicutreFileNameByUniqueID(ctx, uid)
-	if err != nil {
-		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee profile picture by given uniqueIdentifer(%s): %w", uid, err))
-	}
-
-  return &profilePictureFile.String, nil
 }

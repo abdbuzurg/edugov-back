@@ -18,14 +18,3 @@ WHERE id = $1;
 SELECT *
 FROM employees
 WHERE unique_id = $1;
-
--- name: UpdateProfilePicture :exec
-UPDATE employees
-SET 
-  profile_picture = COALESCE($1, profile_picture)
-WHERE unique_id = $2;
-
--- name: GetProfilePicutreFileNameByUniqueID :one
-SELECT profile_picture
-FROM employees
-WHERE unique_id = $1;

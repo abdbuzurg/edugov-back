@@ -15,8 +15,6 @@ import (
 )
 
 type EmployeeUsecase interface {
-	GetProfilePictureFileNameByUniqueID(ctx context.Context, uid string) (*string, error)
-	UpdateProfilePicture(ctx context.Context, uid string, profilePictureFileName string) error
 	Delete(ctx context.Context, id int64) error
 	GetByUniqueID(ctx context.Context, uniqueID string) (*dtos.EmployeeResponse, error)
 }
@@ -37,14 +35,6 @@ func NewEmployeeUsecase(
 		store:        store,
 		validator:    validator,
 	}
-}
-
-func (uc *employeeUsecase) GetProfilePictureFileNameByUniqueID(ctx context.Context, uid string) (*string, error) {
-	return uc.employeeRepo.GetProfilePictureFileNameByUniqueID(ctx, uid)
-}
-
-func (uc *employeeUsecase) UpdateProfilePicture(ctx context.Context, uid string, profilePictureFileName string) error {
-	return uc.employeeRepo.UpdateProfilePicture(ctx, uid, profilePictureFileName)
 }
 
 func (uc *employeeUsecase) Delete(ctx context.Context, id int64) error {

@@ -6,8 +6,6 @@ package sqlc
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -130,7 +128,6 @@ type Querier interface {
 	GetInstitutionResearchSupportInfrastructuresByInstitutionIDAndLanguageCode(ctx context.Context, arg GetInstitutionResearchSupportInfrastructuresByInstitutionIDAndLanguageCodeParams) ([]InstitutionResearchSupportInfrastructure, error)
 	GetInstitutionSocialByID(ctx context.Context, id int64) (InstitutionSocial, error)
 	GetInstitutionSocialsByInstitutionID(ctx context.Context, institutionID int64) ([]InstitutionSocial, error)
-	GetProfilePicutreFileNameByUniqueID(ctx context.Context, uniqueID string) (pgtype.Text, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserSessionByToken(ctx context.Context, refreshToken string) (UserSession, error)
@@ -162,7 +159,6 @@ type Querier interface {
 	UpdateInstitutionRanking(ctx context.Context, arg UpdateInstitutionRankingParams) (UpdateInstitutionRankingRow, error)
 	UpdateInstitutionResearchSupportInfrastructure(ctx context.Context, arg UpdateInstitutionResearchSupportInfrastructureParams) (UpdateInstitutionResearchSupportInfrastructureRow, error)
 	UpdateInstitutionSocial(ctx context.Context, arg UpdateInstitutionSocialParams) (UpdateInstitutionSocialRow, error)
-	UpdateProfilePicture(ctx context.Context, arg UpdateProfilePictureParams) error
 	UpdateUserSession(ctx context.Context, arg UpdateUserSessionParams) (UpdateUserSessionRow, error)
 }
 

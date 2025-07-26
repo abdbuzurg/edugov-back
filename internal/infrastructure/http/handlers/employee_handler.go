@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type EmployeeHandler struct {
@@ -26,13 +27,13 @@ func NewEmployeeHandler(employeeUC usecases.EmployeeUsecase) *EmployeeHandler {
 // Request body - image file
 // Response body - none
 func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
-	const MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+	const MAX_UPLOAD_SIZE = 10 * 1024 * 1024 * 8
 
-	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-		utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("The uploaded file is too big. Please choose an image that is less than 10MB in size.")))
-		return
-	}
+	// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+	// if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+	// 	utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("The uploaded file is too big. Please choose an image that is less than 10MB in size.")))
+	// 	return
+	// }
 
 	file, handler, err := r.FormFile("profilePicture")
 	if err != nil {
@@ -65,6 +66,30 @@ func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Re
 	executableDir := filepath.Dir(executablePath)
 	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile picture/")
 
+	entries, err := os.ReadDir(profilePictureDir)
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("failed to read directory %s: %w", profilePictureDir, err)))
+		return
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		currentFilename := entry.Name()
+		extension := filepath.Ext(currentFilename)
+		currentBaseFilename := strings.TrimSuffix(currentFilename, extension)
+		if currentBaseFilename == uid {
+			fullPath := filepath.Join(profilePictureDir, currentFilename)
+			if err := os.Remove(fullPath); err != nil {
+				utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("failed to delete file %s: %w", fullPath, err)))
+				return
+			}
+			break
+		}
+	}
+
 	dst, err := os.Create(filepath.Join(profilePictureDir, profilePictureFileName))
 	if err != nil {
 		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("%w", err)))
@@ -74,11 +99,6 @@ func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Re
 
 	if _, err := io.Copy(dst, file); err != nil {
 		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("%w", err)))
-		return
-	}
-
-	if err := h.employeeUC.UpdateProfilePicture(r.Context(), uid, profilePictureFileName); err != nil {
-		utils.RespondWithError(w, r, err)
 		return
 	}
 
@@ -123,12 +143,6 @@ func (h *EmployeeHandler) GetByUID(w http.ResponseWriter, r *http.Request) {
 func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Request) {
 	uid := r.PathValue("uid")
 
-	profilePictureFileName, err := h.employeeUC.GetProfilePictureFileNameByUniqueID(r.Context(), uid)
-	if err != nil {
-		utils.RespondWithError(w, r, err)
-		return
-	}
-
 	executablePath, err := os.Executable()
 	if err != nil {
 		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("Error locating executable path: %w", err)))
@@ -137,7 +151,33 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 	executableDir := filepath.Dir(executablePath)
 	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile picture/")
 
-	filePath := filepath.Join(profilePictureDir, *profilePictureFileName)
+	var filePath string
+	entries, err := os.ReadDir(profilePictureDir)
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("failed to read directory %s: %w", profilePictureDir, err)))
+		return
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		currentFilename := entry.Name()
+		extension := filepath.Ext(currentFilename)
+		currentBaseFilename := strings.TrimSuffix(currentFilename, extension)
+		if currentBaseFilename == uid {
+			filePath = filepath.Join(profilePictureDir, currentFilename)
+			break
+		}
+	}
+
+	if filePath == "" {
+		utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("file not found")))
+		return
+	}
+
+	fmt.Println(filePath)
 
 	http.ServeFile(w, r, filePath)
 }

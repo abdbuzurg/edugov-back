@@ -66,14 +66,13 @@ func (uc *employeeDetailsUsecase) Update(ctx context.Context, req []dtos.UpdateE
 	resp := []*dtos.EmployeeDetailsResponse{}
 	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txEmployeeDetailsRepo := postgres.NewPGEmployeeDetailsRepositoryWithQueries(q)
-		langCode := utils.GetLanguageFromContext(ctx)
 
 		newDetails := make([]*domain.EmployeeDetails, len(req))
 		for index, details := range req {
 			newDetails[index] = &domain.EmployeeDetails{
 				ID:           details.ID,
 				EmployeeID:   details.EmployeeID,
-				LanguageCode: langCode,
+				LanguageCode: details.LanguageCode,
 			}
 
 			if details.Name != nil {
