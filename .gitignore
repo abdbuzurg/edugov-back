@@ -1,1 +1,5 @@
-./.en
+build
+build.exe
+
+/storage/**
+!/storage/**/.gitkeep

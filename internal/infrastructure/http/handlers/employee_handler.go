@@ -29,11 +29,11 @@ func NewEmployeeHandler(employeeUC usecases.EmployeeUsecase) *EmployeeHandler {
 func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Request) {
 	const MAX_UPLOAD_SIZE = 10 * 1024 * 1024 * 8
 
-	// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-	// if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-	// 	utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("The uploaded file is too big. Please choose an image that is less than 10MB in size.")))
-	// 	return
-	// }
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+		utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("The uploaded file is too big. Please choose an image that is less than 10MB in size.")))
+		return
+	}
 
 	file, handler, err := r.FormFile("profilePicture")
 	if err != nil {
@@ -64,7 +64,7 @@ func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Re
 		return
 	}
 	executableDir := filepath.Dir(executablePath)
-	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile picture/")
+	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile_picture/")
 
 	entries, err := os.ReadDir(profilePictureDir)
 	if err != nil {
@@ -88,6 +88,12 @@ func (h *EmployeeHandler) UpdateProfilePicture(w http.ResponseWriter, r *http.Re
 			}
 			break
 		}
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("Error resetting file read offset")))
+		return
 	}
 
 	dst, err := os.Create(filepath.Join(profilePictureDir, profilePictureFileName))
@@ -149,7 +155,7 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	executableDir := filepath.Dir(executablePath)
-	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile picture/")
+	profilePictureDir := filepath.Join(executableDir, "/storage/employee/profile_picture/")
 
 	var filePath string
 	entries, err := os.ReadDir(profilePictureDir)
@@ -173,7 +179,7 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 	}
 
 	if filePath == "" {
-		utils.RespondWithError(w, r, custom_errors.BadRequest(fmt.Errorf("file not found")))
+		utils.RespondWithError(w, r, custom_errors.NotFound(fmt.Errorf("file not found")))
 		return
 	}
 
