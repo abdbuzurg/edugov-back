@@ -1,5 +1,5 @@
 build
 build.exe
 
-/storage/**
-!/storage/**/.gitkeep
+/storage/employee/profile_picture/*
+!/storage/employee/profile_picture/.gitignore
