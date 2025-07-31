@@ -14,13 +14,23 @@ func LanguageMiddleware(next http.Handler) http.Handler {
 
 		lang := strings.ToLower(strings.TrimSpace(acceptLanguageHeader))
 
-    if lang != "en" && lang != "ru" && lang != "tg" {
-      lang = "tg"
-    } 
+		if lang != "en" && lang != "ru" && lang != "tg" {
+			lang = "tg"
+		}
 
-    ctx := context.WithValue(r.Context(), LanguageContextKey, lang)
-    r = r.WithContext(ctx)
+		ctx := context.WithValue(r.Context(), LanguageContextKey, lang)
+		r = r.WithContext(ctx)
 
-    next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r)
 	})
+}
+
+// Get Language from Context, if absent set to "tg"
+func GetLanguageFromContext(ctx context.Context) string {
+	language, ok := ctx.Value(LanguageContextKey).(string)
+	if !ok || language == "" {
+		return "tg"
+	}
+
+	return language
 }

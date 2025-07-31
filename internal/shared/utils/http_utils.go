@@ -3,36 +3,15 @@ package utils
 import (
 	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/shared/custom_errors"
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 )
 
-// Get Request ID from Context, if absent set to "unknown"
-func GetRequestIDFromContext(ctx context.Context) string {
-	requestID, ok := ctx.Value(middleware.RequestIDContextKey).(string)
-	if !ok || requestID == "" {
-		return "unknown"
-	}
-
-	return requestID
-}
-
-// Get Language from Context, if absent set to "tg"
-func GetLanguageFromContext(ctx context.Context) string {
-	language, ok := ctx.Value(middleware.LanguageContextKey).(string)
-	if !ok || language == "" {
-		return "tg"
-	}
-
-	return language
-}
-
 // Sends JSON response to the client.
 // Code is HTTP STATUS code
 func RespondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload any) {
-	requestID := GetRequestIDFromContext(r.Context())
+	requestID := middleware.GetRequestIDFromContext(r.Context())
 
 	response, err := json.Marshal(payload)
 	if err != nil {
@@ -76,14 +55,14 @@ var errorMessages = map[string]map[int]string{
 }
 
 func RespondWithError(w http.ResponseWriter, r *http.Request, err error) {
-	lang := GetLanguageFromContext(r.Context())
-	requestID := GetRequestIDFromContext(r.Context())
+	lang := middleware.GetLanguageFromContext(r.Context())
+	requestID := middleware.GetRequestIDFromContext(r.Context())
 
 	if appErr, ok := err.(*custom_errors.AppError); ok {
 		log.Print(appErr.Log(requestID))
 		if appErr.StatusCode == http.StatusBadRequest {
 			RespondWithJSON(w, r, appErr.StatusCode, map[string]string{"message": appErr.Err.Error()})
-      return
+			return
 		}
 		RespondWithJSON(w, r, appErr.StatusCode, map[string]string{"message": errorMessages[lang][appErr.StatusCode]})
 		return

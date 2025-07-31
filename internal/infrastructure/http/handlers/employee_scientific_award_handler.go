@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/internal/application/dtos"
 	"backend/internal/application/usecases"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/utils"
 	"encoding/json"
@@ -32,7 +33,7 @@ func (h *EmployeeScientificAwardHandler) Create(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	req.LanguageCode = utils.GetLanguageFromContext(r.Context())
+	req.LanguageCode = middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
@@ -92,7 +93,7 @@ func (h *EmployeeScientificAwardHandler) GetByEmployeeIDAndLanguageCode(w http.R
 		return
 	}
 
-	langCode := utils.GetLanguageFromContext(r.Context())
+	langCode := middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.GetByEmployeeIDAndLanguageCode(r.Context(), int64(employeeID), langCode)
 	if err != nil {
 		utils.RespondWithError(w, r, err)

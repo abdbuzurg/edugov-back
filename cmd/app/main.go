@@ -61,7 +61,7 @@ func main() {
 	tokenManager := security.NewTokenManager(
 		[]byte(cfg.JWTAccessSecret),
 		[]byte(cfg.JWTRefreshSecret),
-		time.Duration(cfg.JWTAccessExpiryHours)*60*60*time.Second,
+		time.Duration(cfg.JWTAccessExpiryHours)*2*60*60*time.Second,
 		time.Duration(cfg.JWTRefreshExpiryHours)*24*60*60*time.Second,
 	)
 	validator := validator.New()
@@ -101,6 +101,7 @@ func main() {
 	authMux.HandleFunc("POST /login", authHandlers.Login)
 	authMux.HandleFunc("POST /refresh-token", authHandlers.RefreshToken)
 	authMux.HandleFunc("POST /logout", authHandlers.Logout)
+	authMux.HandleFunc("GET /me", authMiddleware(authHandlers.Me))
 	mainMux.Handle("/auth/", http.StripPrefix("/auth", authMux))
 
 	//Employee Handlers

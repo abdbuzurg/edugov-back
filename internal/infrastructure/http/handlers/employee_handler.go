@@ -183,7 +183,5 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	fmt.Println(filePath)
-
 	http.ServeFile(w, r, filePath)
 }

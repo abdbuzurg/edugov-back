@@ -1,0 +1,3 @@
+ALTER TABLE employee_details 
+ALTER COLUMN middlename TYPE VARCHAR(255), 
+ALTER COLUMN middlename SET NOT NULL;

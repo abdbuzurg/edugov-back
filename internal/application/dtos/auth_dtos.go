@@ -7,7 +7,11 @@ type AuthRequest struct {
 }
 
 type LogoutRequest struct {
-  RefreshToken string `json:"refreshToken" validate:"required"`
+	RefreshToken string `json:"refreshToken" validate:"required"`
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
 }
 
 // ---- RESPONSE DTOs ----
@@ -17,4 +21,8 @@ type AuthResponse struct {
 	TokenType    string `json:"tokenType,omitempty"`
 	UID          string `json:"uid"`
 	UserRole     string `json:"userRole"`
+}
+
+type MeResponse struct {
+	UniqueID string `json:"uniqueID"`
 }

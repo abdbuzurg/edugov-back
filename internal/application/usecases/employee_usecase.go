@@ -3,11 +3,11 @@ package usecases
 import (
 	"backend/internal/application/dtos"
 	"backend/internal/application/repositories"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/infrastructure/persistence/postgres"
 	"backend/internal/infrastructure/persistence/postgres/sqlc"
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/mappers"
-	"backend/internal/shared/utils"
 	"context"
 	"fmt"
 
@@ -51,7 +51,7 @@ func (uc *employeeUsecase) GetByUniqueID(ctx context.Context, uniqueID string) (
 	}
 
 	var resp *dtos.EmployeeResponse
-	langCode := utils.GetLanguageFromContext(ctx)
+	langCode := middleware.GetLanguageFromContext(ctx)
 	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
 		txEmployeeDetailsRepo := postgres.NewPGEmployeeDetailsRepositoryWithQueries(q)

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 type AuthHandler struct {
@@ -28,30 +27,14 @@ func NewAuthHandler(
 	}
 }
 
-func (h *AuthHandler) setAuthCookie(w http.ResponseWriter, resp *dtos.AuthResponse) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    resp.RefreshToken,
-		Expires:  time.Now().Add(time.Duration(h.authUsecase.GetRefreshTokenDuration())),
-		HttpOnly: true,
-		Secure:   h.cookieSecure,
-		SameSite: http.SameSiteLaxMode,
-		Domain:   h.cookieDomain,
-		Path:     "/auth/refresh-token",
-	})
-}
+func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+	resp, err := h.authUsecase.Me(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
 
-func (h *AuthHandler) clearAuthCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		HttpOnly: true,
-		Secure:   h.cookieSecure,
-		SameSite: http.SameSiteLaxMode,
-		Domain:   h.cookieDomain,
-		Path:     "/auth/refresh-token",
-	})
+	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
 
 // POST /auth/register
@@ -89,8 +72,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.setAuthCookie(w, resp)
-
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
 
@@ -98,21 +79,17 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 // Request body - dtos.RefreshRequest
 // Response body - dtos.AuthResponse
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	resfreshToken, err := r.Cookie("refresh_token")
-	if err != nil {
-		h.clearAuthCookie(w)
-		utils.RespondWithJSON(w, r, http.StatusNoContent, nil)
+	var req dtos.RefreshTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, r, fmt.Errorf("invalid request body to refresh token: %w", err))
 		return
 	}
 
-	resp, err := h.authUsecase.RefreshToken(r.Context(), resfreshToken.Value)
+	resp, err := h.authUsecase.RefreshToken(r.Context(), req.RefreshToken)
 	if err != nil {
-		h.clearAuthCookie(w)
 		utils.RespondWithError(w, r, err)
 		return
 	}
-
-	h.setAuthCookie(w, resp)
 
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
@@ -121,16 +98,14 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // Request body - dtos.RefreshRequest
 // Response body - none
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-  fmt.Println("kek_logout")
 	var req dtos.LogoutRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, r, fmt.Errorf("invalid request body to login: %w", err))
 		return
 	}
 
-  err := h.authUsecase.Logout(r.Context(), req.RefreshToken)
+	err := h.authUsecase.Logout(r.Context(), req.RefreshToken)
 	if err != nil {
-		h.clearAuthCookie(w)
 		utils.RespondWithError(w, r, err)
 		return
 	}

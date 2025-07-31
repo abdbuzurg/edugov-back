@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/internal/application/dtos"
 	"backend/internal/application/usecases"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/utils"
 	"encoding/json"
@@ -32,7 +33,7 @@ func (h *EmployeeParticipationInProfessionalCommunityHandler) Create(w http.Resp
 		return
 	}
 
-  req.LanguageCode = utils.GetLanguageFromContext(r.Context())
+	req.LanguageCode = middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
@@ -92,12 +93,12 @@ func (h *EmployeeParticipationInProfessionalCommunityHandler) GetByEmployeeIDAnd
 		return
 	}
 
-	langCode := utils.GetLanguageFromContext(r.Context())
+	langCode := middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.GetByEmployeeIDAndLanguageCode(r.Context(), int64(employeeID), langCode)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
 	}
 
-  utils.RespondWithJSON(w, r, http.StatusOK, resp)
+	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }

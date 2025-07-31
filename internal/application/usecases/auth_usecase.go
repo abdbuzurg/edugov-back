@@ -4,11 +4,11 @@ import (
 	"backend/internal/application/dtos"
 	"backend/internal/application/repositories"
 	"backend/internal/domain"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/infrastructure/persistence/postgres"
 	"backend/internal/infrastructure/persistence/postgres/sqlc"
 	"backend/internal/infrastructure/security"
 	"backend/internal/shared/custom_errors"
-	"backend/internal/shared/utils"
 	"context"
 	"crypto/rand"
 	"fmt"
@@ -26,6 +26,7 @@ type AuthUsecase interface {
 	RefreshToken(ctx context.Context, refreshToken string) (*dtos.AuthResponse, error)
 	Logout(ctx context.Context, refreshToken string) error
 	GetRefreshTokenDuration() time.Duration
+	Me(ctx context.Context) (*dtos.MeResponse, error)
 }
 
 type authUsecase struct {
@@ -145,6 +146,43 @@ func (uc *authUsecase) generateNumericUniqueID() (string, error) {
 	return builder.String(), nil
 }
 
+func (uc *authUsecase) Me(ctx context.Context) (*dtos.MeResponse, error) {
+	userID, ok := middleware.GetUserIDFromContext(ctx)
+
+	result := &dtos.MeResponse{
+		UniqueID: "guest",
+	}
+	if !ok {
+		return result, nil
+	}
+
+	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
+		txUserRepo := postgres.NewPgUserRepositoryWithQueries(q)
+
+		user, err := txUserRepo.GetByID(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		if user.UserType == "employee" {
+			txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
+			employee, err := txEmployeeRepo.GetByID(ctx, user.EntityID)
+			if err != nil {
+				return err
+			}
+
+			result.UniqueID = employee.UniqueID
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("could not detect current user (userID - %d): %w", userID, err))
+	}
+
+	return result, nil
+}
+
 func (uc *authUsecase) Register(ctx context.Context, req *dtos.AuthRequest) error {
 	if err := uc.validator.Struct(req); err != nil {
 		return custom_errors.BadRequest(fmt.Errorf("invalid registration input: %w", err))
@@ -167,9 +205,9 @@ func (uc *authUsecase) Register(ctx context.Context, req *dtos.AuthRequest) erro
 				return err
 			}
 
-      if employeeResult != nil {
-        isUniqueExists = false
-      }
+			if employeeResult != nil {
+				isUniqueExists = false
+			}
 
 		}
 
@@ -187,7 +225,7 @@ func (uc *authUsecase) Register(ctx context.Context, req *dtos.AuthRequest) erro
 		if err != nil && !custom_errors.IsUniqueConstraintError(err) {
 			return err
 		} else if custom_errors.IsUniqueConstraintError(err) {
-			lang := utils.GetLanguageFromContext(ctx)
+			lang := middleware.GetLanguageFromContext(ctx)
 			return custom_errors.BadRequest(fmt.Errorf(clientErrorMessages["registerSameEmail"][lang], req.Email))
 		}
 
@@ -208,7 +246,7 @@ func (uc *authUsecase) Login(ctx context.Context, req *dtos.AuthRequest) (*dtos.
 	user, err := uc.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		if custom_errors.IsNotFound(err) {
-			lang := utils.GetLanguageFromContext(ctx)
+			lang := middleware.GetLanguageFromContext(ctx)
 			return nil, custom_errors.BadRequest(fmt.Errorf(clientErrorMessages["invalidCredentials"][lang]))
 		}
 
@@ -216,7 +254,7 @@ func (uc *authUsecase) Login(ctx context.Context, req *dtos.AuthRequest) (*dtos.
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		lang := utils.GetLanguageFromContext(ctx)
+		lang := middleware.GetLanguageFromContext(ctx)
 		return nil, custom_errors.BadRequest(fmt.Errorf(clientErrorMessages["invalidCredentials"][lang]))
 	}
 
@@ -260,7 +298,7 @@ func (uc *authUsecase) RefreshToken(ctx context.Context, refreshToken string) (*
 }
 
 func (uc *authUsecase) removeSessionOnError(ctx context.Context, userID int64) {
-  _ = uc.userSessionRepo.DeleteSessionsByUserID(ctx, userID)
+	_ = uc.userSessionRepo.DeleteSessionsByUserID(ctx, userID)
 }
 
 func (uc *authUsecase) Logout(ctx context.Context, refreshToken string) error {
@@ -275,18 +313,18 @@ func (uc *authUsecase) Logout(ctx context.Context, refreshToken string) error {
 			return custom_errors.NotFound(fmt.Errorf("session for token not found")) // Already logged out or never existed
 		}
 
-    uc.removeSessionOnError(ctx, refreshClaims.UserID)
+		uc.removeSessionOnError(ctx, refreshClaims.UserID)
 		return err
 	}
 
 	if session.UserID != refreshClaims.UserID {
-    uc.removeSessionOnError(ctx, refreshClaims.UserID)
+		uc.removeSessionOnError(ctx, refreshClaims.UserID)
 		return custom_errors.Unauthorized(fmt.Errorf("refresh token user ID mismatch during logout"))
 	}
 
 	err = uc.userSessionRepo.DeleteSession(ctx, session.ID)
 	if err != nil {
-    uc.removeSessionOnError(ctx, refreshClaims.UserID)
+		uc.removeSessionOnError(ctx, refreshClaims.UserID)
 		return custom_errors.InternalServerError(fmt.Errorf("failed to delete user session on logout: %w", err))
 	}
 
