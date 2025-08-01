@@ -151,6 +151,7 @@ func (uc *authUsecase) Me(ctx context.Context) (*dtos.MeResponse, error) {
 
 	result := &dtos.MeResponse{
 		UniqueID: "guest",
+		Type:     "guest",
 	}
 	if !ok {
 		return result, nil
@@ -172,6 +173,7 @@ func (uc *authUsecase) Me(ctx context.Context) (*dtos.MeResponse, error) {
 			}
 
 			result.UniqueID = employee.UniqueID
+			result.Type = "employee"
 		}
 
 		return nil

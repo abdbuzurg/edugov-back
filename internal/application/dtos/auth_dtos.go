@@ -25,4 +25,5 @@ type AuthResponse struct {
 
 type MeResponse struct {
 	UniqueID string `json:"uniqueID"`
+	Type     string `json:"type"`
 }
