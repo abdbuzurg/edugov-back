@@ -72,7 +72,7 @@ func (r *pgEmployeeSocialRepository) GetByID(ctx context.Context, id int64) (*do
 	employeeSocialResult, err := r.queries.GetEmployeeSocialByID(ctx, id)
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee social with give ID(%d): %w", id, err))
-	} 
+	}
 
 	return &domain.EmployeeSocial{
 		ID:           employeeSocialResult.ID,
@@ -88,7 +88,7 @@ func (r *pgEmployeeSocialRepository) GetByEmployeeID(ctx context.Context, employ
 	employeeSocialsResult, err := r.queries.GetEmployeeSocialsByEmployeeIDAndLanguageCode(ctx, employeeID)
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee socials with given EmployeeID(%d): %w", employeeID, err))
-	} 
+	}
 
 	employeeSocials := make([]*domain.EmployeeSocial, len(employeeSocialsResult))
 	for index, degree := range employeeSocialsResult {

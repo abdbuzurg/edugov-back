@@ -6,7 +6,6 @@ import "time"
 
 type CreateEmployeeSocialRequest struct {
 	EmployeeID   int64  `json:"employeeID" validate:"required,min=1"`
-	LanguageCode string `json:"-" validate:"required,len=2"`
 	SocialName   string `json:"socialName" validate:"required"`
 	LinkToSocial string `json:"linkToSocial" validate:"required"`
 }

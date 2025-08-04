@@ -56,6 +56,7 @@ func main() {
 	employeeScientificAwardRepo := postgres.NewPgEmployeeScientificAwardRepository(store)
 	employeePatentRepo := postgres.NewPgEmployeePatentRepository(store)
 	employeePIPCRepo := postgres.NewPgEmployeeParticipationInProfessionalCommunityRepository(store)
+	employeeSocialRepo := postgres.NewPgEmployeeSocialRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
@@ -76,6 +77,7 @@ func main() {
 	employeeScientificAwardUC := usecases.NewEmployeeScientificAwardUsecase(employeeScientificAwardRepo, validator)
 	employeePatentUC := usecases.NewEmployeePatentUsecase(employeePatentRepo, validator)
 	employeePIPCUC := usecases.NewEmployeeParticipationInProfessionalCommunityUsecase(employeePIPCRepo, validator)
+	employeeSocialUC := usecases.NewEmployeeSocialUsecase(employeeSocialRepo, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
@@ -87,6 +89,7 @@ func main() {
 	employeeScientificAwardHandler := handlers.NewEmployeeScientificAwardHandler(employeeScientificAwardUC)
 	employeePatentHandler := handlers.NewEmployeePatentHandler(employeePatentUC)
 	employeePIPCHandler := handlers.NewEmployeeParticipationInProfessionalCommunityHandler(employeePIPCUC)
+	employeeSocialHandler := handlers.NewEmployeeSocialHandler(employeeSocialUC)
 
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
@@ -120,29 +123,34 @@ func main() {
 	employeeMux.HandleFunc("DELETE /degree/{id}", authMiddleware(employeeDegreeHandler.Delete))
 	// ---- employee/work-experience
 	employeeMux.HandleFunc("GET /work-experience/{employeeID}", employeeWorkExperienceHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /work-experience", employeeWorkExperienceHandler.Create)
-	employeeMux.HandleFunc("PUT /work-experience", employeeWorkExperienceHandler.Update)
-	employeeMux.HandleFunc("DELETE /work-experience/{id}", employeeWorkExperienceHandler.Delete)
+	employeeMux.HandleFunc("POST /work-experience", authMiddleware(employeeWorkExperienceHandler.Create))
+	employeeMux.HandleFunc("PUT /work-experience", authMiddleware(employeeWorkExperienceHandler.Update))
+	employeeMux.HandleFunc("DELETE /work-experience/{id}", authMiddleware(employeeWorkExperienceHandler.Delete))
 	// ---- employee/publication
 	employeeMux.HandleFunc("GET /publication/{employeeID}", employeePublicationHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /publication", employeePublicationHandler.Create)
-	employeeMux.HandleFunc("PUT /publication", employeePublicationHandler.Update)
-	employeeMux.HandleFunc("DELETE /publication/{id}", employeePublicationHandler.Delete)
+	employeeMux.HandleFunc("POST /publication", authMiddleware(employeePublicationHandler.Create))
+	employeeMux.HandleFunc("PUT /publication", authMiddleware(employeePublicationHandler.Update))
+	employeeMux.HandleFunc("DELETE /publication/{id}", authMiddleware(employeePublicationHandler.Delete))
 	// ---- employee/scientific-award
 	employeeMux.HandleFunc("GET /scientific-award/{employeeID}", employeeScientificAwardHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /scientific-award", employeeScientificAwardHandler.Create)
-	employeeMux.HandleFunc("PUT /scientific-award", employeeScientificAwardHandler.Update)
-	employeeMux.HandleFunc("DELETE /scientific-award/{id}", employeeScientificAwardHandler.Delete)
+	employeeMux.HandleFunc("POST /scientific-award", authMiddleware(employeeScientificAwardHandler.Create))
+	employeeMux.HandleFunc("PUT /scientific-award", authMiddleware(employeeScientificAwardHandler.Update))
+	employeeMux.HandleFunc("DELETE /scientific-award/{id}", authMiddleware(employeeScientificAwardHandler.Delete))
 	// --- employee/patent
 	employeeMux.HandleFunc("GET /patent/{employeeID}", employeePatentHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /patent", employeePatentHandler.Create)
-	employeeMux.HandleFunc("PUT /patent", employeePatentHandler.Update)
-	employeeMux.HandleFunc("DELETE /patent/{id}", employeePatentHandler.Delete)
+	employeeMux.HandleFunc("POST /patent", authMiddleware(employeePatentHandler.Create))
+	employeeMux.HandleFunc("PUT /patent", authMiddleware(employeePatentHandler.Update))
+	employeeMux.HandleFunc("DELETE /patent/{id}", authMiddleware(employeePatentHandler.Delete))
 	// --- employee/pipc
 	employeeMux.HandleFunc("GET /pipc/{employeeID}", employeePIPCHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /pipc", employeePIPCHandler.Create)
-	employeeMux.HandleFunc("PUT /pipc", employeePIPCHandler.Update)
-	employeeMux.HandleFunc("DELETE /pipc/{id}", employeePIPCHandler.Delete)
+	employeeMux.HandleFunc("POST /pipc", authMiddleware(employeePIPCHandler.Create))
+	employeeMux.HandleFunc("PUT /pipc", authMiddleware(employeePIPCHandler.Update))
+	employeeMux.HandleFunc("DELETE /pipc/{id}", authMiddleware(employeePIPCHandler.Delete))
+	// --- employee/social
+	employeeMux.HandleFunc("GET /social/{employeeID}", employeeSocialHandler.GetByEmployeeID)
+	employeeMux.HandleFunc("POST /social", authMiddleware(employeeSocialHandler.Create))
+	employeeMux.HandleFunc("PUT /social", authMiddleware(employeeSocialHandler.Update))
+	employeeMux.HandleFunc("DELETE /social/{id}", authMiddleware(employeeSocialHandler.Delete))
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 

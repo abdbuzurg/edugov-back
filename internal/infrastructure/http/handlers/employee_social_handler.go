@@ -21,7 +21,7 @@ func NewEmployeeSocialHandler(employeeDegreeUC usecases.EmployeeSocialUsecase) *
 	}
 }
 
-// POST /employee-social
+// POST /employee/social
 // Request body - dto.CreateEmployeeSocialRequest
 // Response body - dto.EmployeeSocialResponse
 func (h *EmployeeSocialHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +41,7 @@ func (h *EmployeeSocialHandler) Create(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, r, http.StatusCreated, resp)
 }
 
-// PUT /employee-social
+// PUT /employee/social
 // Request body - dto.UpdateEmployeeSocialRequest
 // Response body - dto.EmployeeSocialResponse
 func (h *EmployeeSocialHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func (h *EmployeeSocialHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
 
-// DELETE /employee-social/{id}
+// DELETE /employee/social/{id}
 // Request body - None
 // Response body - None
 func (h *EmployeeSocialHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,7 @@ func (h *EmployeeSocialHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /employee-social/employee-{employeeID}/
+// GET /employee/social/{employeeID}
 // Request body - none
 // Response body - []dtos.EmployeeSocialResponse
 func (h *EmployeeSocialHandler) GetByEmployeeID(w http.ResponseWriter, r *http.Request) {
@@ -97,5 +97,5 @@ func (h *EmployeeSocialHandler) GetByEmployeeID(w http.ResponseWriter, r *http.R
 		return
 	}
 
-  utils.RespondWithJSON(w, r, http.StatusOK, resp)
+	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
