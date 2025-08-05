@@ -57,13 +57,14 @@ func main() {
 	employeePatentRepo := postgres.NewPgEmployeePatentRepository(store)
 	employeePIPCRepo := postgres.NewPgEmployeeParticipationInProfessionalCommunityRepository(store)
 	employeeSocialRepo := postgres.NewPgEmployeeSocialRepository(store)
+	employeeRefresherRepo := postgres.NewPgEmployeeRefresherCourseRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
 		[]byte(cfg.JWTAccessSecret),
 		[]byte(cfg.JWTRefreshSecret),
 		time.Duration(cfg.JWTAccessExpiryHours)*2*60*60*time.Second,
-		time.Duration(cfg.JWTRefreshExpiryHours)*24*60*60*time.Second,
+		time.Duration(cfg.JWTRefreshExpiryHours)*7*24*60*60*time.Second,
 	)
 	validator := validator.New()
 
@@ -78,6 +79,7 @@ func main() {
 	employeePatentUC := usecases.NewEmployeePatentUsecase(employeePatentRepo, validator)
 	employeePIPCUC := usecases.NewEmployeeParticipationInProfessionalCommunityUsecase(employeePIPCRepo, validator)
 	employeeSocialUC := usecases.NewEmployeeSocialUsecase(employeeSocialRepo, validator)
+	employeeRefresherUC := usecases.NewEmployeeRefresherCourseUsecase(employeeRefresherRepo, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
@@ -90,6 +92,7 @@ func main() {
 	employeePatentHandler := handlers.NewEmployeePatentHandler(employeePatentUC)
 	employeePIPCHandler := handlers.NewEmployeeParticipationInProfessionalCommunityHandler(employeePIPCUC)
 	employeeSocialHandler := handlers.NewEmployeeSocialHandler(employeeSocialUC)
+	employeeRefresherHandler := handlers.NewEmployeeRefresherCourseHandler(employeeRefresherUC)
 
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
@@ -151,6 +154,11 @@ func main() {
 	employeeMux.HandleFunc("POST /social", authMiddleware(employeeSocialHandler.Create))
 	employeeMux.HandleFunc("PUT /social", authMiddleware(employeeSocialHandler.Update))
 	employeeMux.HandleFunc("DELETE /social/{id}", authMiddleware(employeeSocialHandler.Delete))
+	// --- employee/refresher-course
+	employeeMux.HandleFunc("GET /refresher-course/{employeeID}", employeeRefresherHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /refresher-course", employeeRefresherHandler.Create)
+	employeeMux.HandleFunc("PUT /refresher-course", employeeRefresherHandler.Update)
+	employeeMux.HandleFunc("DELETE /refresher-course/{id}", employeeRefresherHandler.Delete)
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 

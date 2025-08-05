@@ -22,7 +22,7 @@ func NewEmployeeRefresherCourseHandler(employeeDegreeUC usecases.EmployeeRefresh
 	}
 }
 
-// POST /employee-refresher-course
+// POST /employee/refresher-course
 // Request body - dto.CreateEmployeeRefresherCourseRequest
 // Response body - dto.EmployeeRefresherCourseResponse
 func (h *EmployeeRefresherCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +33,7 @@ func (h *EmployeeRefresherCourseHandler) Create(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	req.LanguageCode = middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
@@ -42,7 +43,7 @@ func (h *EmployeeRefresherCourseHandler) Create(w http.ResponseWriter, r *http.R
 	utils.RespondWithJSON(w, r, http.StatusCreated, resp)
 }
 
-// PUT /employee-refresher-course
+// PUT /employee/refresher-course
 // Request body - dto.UpdateEmployeeRefresherCourseRequest
 // Response body - dto.EmployeeRefresherCourseResponse
 func (h *EmployeeRefresherCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +63,7 @@ func (h *EmployeeRefresherCourseHandler) Update(w http.ResponseWriter, r *http.R
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
 
-// DELETE /employee-refresher-course/{id}
+// DELETE /employee/refresher-course/{id}
 // Request body - None
 // Response body - None
 func (h *EmployeeRefresherCourseHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +82,7 @@ func (h *EmployeeRefresherCourseHandler) Delete(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /employee-refresher-course/employee-{employeeID}/
+// GET /employee/refresher-course/{employeeID}
 // Request body - none
 // Response body - []dtos.EmployeeRefresherCourseResponse
 func (h *EmployeeRefresherCourseHandler) GetByEmployeeIDAndLanguageCode(w http.ResponseWriter, r *http.Request) {

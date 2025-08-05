@@ -311,11 +311,11 @@ func (uc *authUsecase) Logout(ctx context.Context, refreshToken string) error {
 
 	session, err := uc.userSessionRepo.GetSessionByToken(ctx, refreshToken)
 	if err != nil {
+		uc.removeSessionOnError(ctx, refreshClaims.UserID)
 		if custom_errors.IsNotFound(err) {
 			return custom_errors.NotFound(fmt.Errorf("session for token not found")) // Already logged out or never existed
 		}
 
-		uc.removeSessionOnError(ctx, refreshClaims.UserID)
 		return err
 	}
 
