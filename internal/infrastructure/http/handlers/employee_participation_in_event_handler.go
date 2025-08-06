@@ -22,7 +22,7 @@ func NewEmployeeParticipationInEventHandler(employeeDegreeUC usecases.EmployeePa
 	}
 }
 
-// POST /employee-participation-in-event
+// POST /employee/pie
 // Request body - dto.CreateEmployeeParticipationInEventRequest
 // Response body - dto.EmployeeParticipationInEventResponse
 func (h *EmployeeParticipationInEventHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +33,7 @@ func (h *EmployeeParticipationInEventHandler) Create(w http.ResponseWriter, r *h
 		return
 	}
 
+	req.LanguageCode = middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
@@ -42,7 +43,7 @@ func (h *EmployeeParticipationInEventHandler) Create(w http.ResponseWriter, r *h
 	utils.RespondWithJSON(w, r, http.StatusCreated, resp)
 }
 
-// PUT /employee-participation-in-event
+// PUT /employee/pie
 // Request body - dto.UpdateEmployeeParticipationInEventRequest
 // Response body - dto.EmployeeParticipationInEventResponse
 func (h *EmployeeParticipationInEventHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +63,7 @@ func (h *EmployeeParticipationInEventHandler) Update(w http.ResponseWriter, r *h
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
 }
 
-// DELETE /employee-participation-in-event/{id}
+// DELETE /employee/pie/{id}
 // Request body - None
 // Response body - None
 func (h *EmployeeParticipationInEventHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +82,7 @@ func (h *EmployeeParticipationInEventHandler) Delete(w http.ResponseWriter, r *h
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /employee-participation-in-event/employee-{employeeID}/
+// GET /employee/pie/{employeeID}
 // Request body - none
 // Response body - []dtos.EmployeeParticipationInEventResponse
 func (h *EmployeeParticipationInEventHandler) GetByEmployeeIDAndLanguageCode(w http.ResponseWriter, r *http.Request) {

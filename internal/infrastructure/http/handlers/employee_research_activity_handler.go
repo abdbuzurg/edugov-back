@@ -33,6 +33,7 @@ func (h *EmployeeResearchActivityHandler) Create(w http.ResponseWriter, r *http.
 		return
 	}
 
+	req.LanguageCode = middleware.GetLanguageFromContext(r.Context())
 	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)

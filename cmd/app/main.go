@@ -58,6 +58,8 @@ func main() {
 	employeePIPCRepo := postgres.NewPgEmployeeParticipationInProfessionalCommunityRepository(store)
 	employeeSocialRepo := postgres.NewPgEmployeeSocialRepository(store)
 	employeeRefresherRepo := postgres.NewPgEmployeeRefresherCourseRepository(store)
+	employeePIERepo := postgres.NewPgEmployeeParticipationInEventRepository(store)
+	employeeResearchActivityRepo := postgres.NewPgEmployeeResearchActivityRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
@@ -80,6 +82,8 @@ func main() {
 	employeePIPCUC := usecases.NewEmployeeParticipationInProfessionalCommunityUsecase(employeePIPCRepo, validator)
 	employeeSocialUC := usecases.NewEmployeeSocialUsecase(employeeSocialRepo, validator)
 	employeeRefresherUC := usecases.NewEmployeeRefresherCourseUsecase(employeeRefresherRepo, validator)
+	employeeParticipationInEventUC := usecases.NewEmployeeParticipationInEventUsecase(employeePIERepo, validator)
+	employeeResearchActivityUC := usecases.NewEmployeeResearchActivityUsecase(employeeResearchActivityRepo, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
@@ -93,6 +97,8 @@ func main() {
 	employeePIPCHandler := handlers.NewEmployeeParticipationInProfessionalCommunityHandler(employeePIPCUC)
 	employeeSocialHandler := handlers.NewEmployeeSocialHandler(employeeSocialUC)
 	employeeRefresherHandler := handlers.NewEmployeeRefresherCourseHandler(employeeRefresherUC)
+	employeePIEHandler := handlers.NewEmployeeParticipationInEventHandler(employeeParticipationInEventUC)
+	employeeResearchActivityHandler := handlers.NewEmployeeResearchActivityHandler(employeeResearchActivityUC)
 
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
@@ -159,6 +165,16 @@ func main() {
 	employeeMux.HandleFunc("POST /refresher-course", employeeRefresherHandler.Create)
 	employeeMux.HandleFunc("PUT /refresher-course", employeeRefresherHandler.Update)
 	employeeMux.HandleFunc("DELETE /refresher-course/{id}", employeeRefresherHandler.Delete)
+	// --- employee/pie
+	employeeMux.HandleFunc("GET /pie/{employeeID}", employeePIEHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /pie", employeePIEHandler.Create)
+	employeeMux.HandleFunc("PUT /pie", employeePIEHandler.Update)
+	employeeMux.HandleFunc("DELETE /pie/{id}", employeePIEHandler.Delete)
+	// --- employee/research-activity
+	employeeMux.HandleFunc("GET /research-activity/{employeeID}", employeeResearchActivityHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /research-activity", employeeResearchActivityHandler.Create)
+	employeeMux.HandleFunc("PUT /research-activity", employeeResearchActivityHandler.Update)
+	employeeMux.HandleFunc("DELETE /research-activity/{id}", employeeResearchActivityHandler.Delete)
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 
