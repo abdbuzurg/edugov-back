@@ -24,6 +24,8 @@ type EmployeeMainResearchArea interface {
 	//Delete - removes main research key topic entry from DB.
 	DeleteRAKT(ctx context.Context, id int64) error
 
+	DeleteRAKTbyMraID(ctx context.Context, id int64) error
+
 	//GetMRAByID - retrives employee main research area entry from DB by ID
 	GetMRAByID(ctx context.Context, id int64) (*domain.EmployeeMainResearchArea, error)
 

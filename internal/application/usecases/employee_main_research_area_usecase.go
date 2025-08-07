@@ -93,7 +93,7 @@ func (uc *employeeMainResearchAreaUsecase) Update(ctx context.Context, req *dtos
 	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txEmployeeMainResearchAreaRepo := postgres.NewPgEmployeeMainResearchAreaRepositoryWithQueries(q)
 
-		_, err := txEmployeeMainResearchAreaRepo.GetMRAByID(ctx, employeeMRA.ID)
+		_, err := txEmployeeMainResearchAreaRepo.GetMRAByID(ctx, req.ID)
 		if err != nil && !custom_errors.IsNotFound(err) {
 			return err
 		}
@@ -118,11 +118,12 @@ func (uc *employeeMainResearchAreaUsecase) Update(ctx context.Context, req *dtos
 		reqRakt := make([]*domain.ResearchAreaKeyTopic, len(req.KeyTopics))
 		for index, kt := range req.KeyTopics {
 			reqRakt[index] = &domain.ResearchAreaKeyTopic{
-				ID: kt.ID,
+				ID:                         kt.ID,
+				EmployeeMainResearchAreaID: req.ID,
 			}
 
 			if kt.KeyTopicTitle != nil {
-				employeeMRA.KeyTopics[index].KeyTopicTitle = *kt.KeyTopicTitle
+				reqRakt[index].KeyTopicTitle = *kt.KeyTopicTitle
 			}
 		}
 
@@ -132,7 +133,6 @@ func (uc *employeeMainResearchAreaUsecase) Update(ctx context.Context, req *dtos
 		}
 
 		updatedRAKTs, newRAKTs, removeRAKTs := utils.CompareSlices(oldRakt, reqRakt)
-		employeeMRA.KeyTopics = []*domain.ResearchAreaKeyTopic{}
 		for _, rakt := range updatedRAKTs {
 			updatedRAKT, err := txEmployeeMainResearchAreaRepo.UpdateRAKT(ctx, rakt)
 			if err != nil {
@@ -172,6 +172,24 @@ func (uc *employeeMainResearchAreaUsecase) Delete(ctx context.Context, id int64)
 		return custom_errors.BadRequest(fmt.Errorf("invalid input - ID(%d) to delete employee main research area", id))
 	}
 
+	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
+		txEmployeeMainResearchAreaRepo := postgres.NewPgEmployeeMainResearchAreaRepositoryWithQueries(q)
+
+		if err := txEmployeeMainResearchAreaRepo.DeleteRAKTbyMraID(ctx, id); err != nil {
+			return err
+		}
+
+		if err := txEmployeeMainResearchAreaRepo.DeleteMRA(ctx, id); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return uc.employeeMRARepo.DeleteMRA(ctx, id)
 }
 
@@ -194,14 +212,14 @@ func (uc *employeeMainResearchAreaUsecase) GetByEmployeeIDAndLanguageCode(ctx co
 			return err
 		}
 
-    for index, mra := range employeeMRAs {
-      rakts, err := txEmployeeMainResearchAreaRepo.GetRAKTByMRAIDAndLanguageCode(ctx, mra.ID)
-      if err != nil {
-        return err
-      }
+		for index, mra := range employeeMRAs {
+			rakts, err := txEmployeeMainResearchAreaRepo.GetRAKTByMRAIDAndLanguageCode(ctx, mra.ID)
+			if err != nil {
+				return err
+			}
 
-      employeeMRAs[index].KeyTopics = rakts
-    }
+			employeeMRAs[index].KeyTopics = rakts
+		}
 
 		return nil
 	})

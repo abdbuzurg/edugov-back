@@ -13,12 +13,12 @@ import (
 )
 
 type EmployeeMainResearchAreaHandler struct {
-	employeeDegreeUC usecases.EmployeeMainResearchAreaUsecase
+	employeeMRAUC usecases.EmployeeMainResearchAreaUsecase
 }
 
-func NewEmployeeMainResearchAreaHandler(employeeDegreeUC usecases.EmployeeMainResearchAreaUsecase) *EmployeeMainResearchAreaHandler {
+func NewEmployeeMainResearchAreaHandler(employeeMRAUC usecases.EmployeeMainResearchAreaUsecase) *EmployeeMainResearchAreaHandler {
 	return &EmployeeMainResearchAreaHandler{
-		employeeDegreeUC: employeeDegreeUC,
+		employeeMRAUC: employeeMRAUC,
 	}
 }
 
@@ -33,7 +33,12 @@ func (h *EmployeeMainResearchAreaHandler) Create(w http.ResponseWriter, r *http.
 		return
 	}
 
-	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
+	lang := middleware.GetLanguageFromContext(r.Context())
+	req.LanguageCode = lang
+	for index := range req.KeyTopics {
+		req.KeyTopics[index].LanguageCode = lang
+	}
+	resp, err := h.employeeMRAUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
@@ -53,7 +58,7 @@ func (h *EmployeeMainResearchAreaHandler) Update(w http.ResponseWriter, r *http.
 		return
 	}
 
-	resp, err := h.employeeDegreeUC.Update(r.Context(), &req)
+	resp, err := h.employeeMRAUC.Update(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
@@ -73,7 +78,7 @@ func (h *EmployeeMainResearchAreaHandler) Delete(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if err := h.employeeDegreeUC.Delete(r.Context(), int64(id)); err != nil {
+	if err := h.employeeMRAUC.Delete(r.Context(), int64(id)); err != nil {
 		utils.RespondWithError(w, r, err)
 		return
 	}
@@ -93,7 +98,7 @@ func (h *EmployeeMainResearchAreaHandler) GetByEmployeeIDAndLanguageCode(w http.
 	}
 
 	langCode := middleware.GetLanguageFromContext(r.Context())
-	resp, err := h.employeeDegreeUC.GetByEmployeeIDAndLanguageCode(r.Context(), int64(employeeID), langCode)
+	resp, err := h.employeeMRAUC.GetByEmployeeIDAndLanguageCode(r.Context(), int64(employeeID), langCode)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return

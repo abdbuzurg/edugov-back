@@ -94,6 +94,16 @@ func (q *Queries) DeleteEmployeeMainResearchAreaKeyTopic(ctx context.Context, id
 	return err
 }
 
+const deleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID = `-- name: DeleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID :exec
+DELETE FROM employee_main_research_area_key_topics
+where employee_main_research_area_id = $1
+`
+
+func (q *Queries) DeleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID(ctx context.Context, employeeMainResearchAreaID int64) error {
+	_, err := q.db.Exec(ctx, deleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID, employeeMainResearchAreaID)
+	return err
+}
+
 const getEmployeeMainResearchAreaByID = `-- name: GetEmployeeMainResearchAreaByID :one
 SELECT id, employee_id, language_code, area, discipline, created_at, updated_at
 FROM employee_main_research_areas

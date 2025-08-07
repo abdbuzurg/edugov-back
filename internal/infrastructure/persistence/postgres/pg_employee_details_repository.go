@@ -7,6 +7,8 @@ import (
 	"backend/internal/shared/custom_errors"
 	"context"
 	"fmt"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type pgEmployeeDetailsRepository struct {
@@ -29,11 +31,14 @@ func NewPGEmployeeDetailsRepositoryWithQueries(q *sqlc.Queries) repositories.Emp
 
 func (r *pgEmployeeDetailsRepository) Create(ctx context.Context, employeeDetails *domain.EmployeeDetails) (*domain.EmployeeDetails, error) {
 	createdEmployeeDetails, err := r.queries.CreateEmployeeDetails(ctx, sqlc.CreateEmployeeDetailsParams{
-		EmployeeID:           employeeDetails.EmployeeID,
-		LanguageCode:         employeeDetails.LanguageCode,
-		Surname:              employeeDetails.Surname,
-		Name:                 employeeDetails.Name,
-		Middlename:           employeeDetails.Middlename,
+		EmployeeID:   employeeDetails.EmployeeID,
+		LanguageCode: employeeDetails.LanguageCode,
+		Surname:      employeeDetails.Surname,
+		Name:         employeeDetails.Name,
+		Middlename: pgtype.Text{
+			Valid:  true,
+			String: employeeDetails.Middlename,
+		},
 		IsEmployeeDetailsNew: employeeDetails.IsEmployeeDetailsNew,
 	})
 	if err != nil {
@@ -49,9 +54,12 @@ func (r *pgEmployeeDetailsRepository) Create(ctx context.Context, employeeDetail
 
 func (r *pgEmployeeDetailsRepository) Update(ctx context.Context, employeeDetails *domain.EmployeeDetails) (*domain.EmployeeDetails, error) {
 	updatedEmployeeDetails, err := r.queries.UpdateEmployeeDetails(ctx, sqlc.UpdateEmployeeDetailsParams{
-		Surname:              employeeDetails.Surname,
-		Name:                 employeeDetails.Name,
-		Middlename:           employeeDetails.Middlename,
+		Surname: employeeDetails.Surname,
+		Name:    employeeDetails.Name,
+		Middlename: pgtype.Text{
+			Valid:  true,
+			String: employeeDetails.Middlename,
+		},
 		ID:                   employeeDetails.ID,
 		IsEmployeeDetailsNew: employeeDetails.IsEmployeeDetailsNew,
 	})
@@ -85,7 +93,7 @@ func (r *pgEmployeeDetailsRepository) GetByID(ctx context.Context, id int64) (*d
 		LanguageCode:         employeeDetailsResult.LanguageCode,
 		Surname:              employeeDetailsResult.Surname,
 		Name:                 employeeDetailsResult.Name,
-		Middlename:           employeeDetailsResult.Middlename,
+		Middlename:           employeeDetailsResult.Middlename.String,
 		IsEmployeeDetailsNew: employeeDetailsResult.IsEmployeeDetailsNew,
 		CreatedAt:            employeeDetailsResult.CreatedAt.Time,
 		UpdatedAt:            employeeDetailsResult.UpdatedAt.Time,
@@ -106,7 +114,7 @@ func (r *pgEmployeeDetailsRepository) GetByEmployeeID(ctx context.Context, emplo
 			LanguageCode:         details.LanguageCode,
 			Surname:              details.Surname,
 			Name:                 details.Name,
-			Middlename:           details.Middlename,
+			Middlename:           details.Middlename.String,
 			IsEmployeeDetailsNew: details.IsEmployeeDetailsNew,
 			CreatedAt:            details.CreatedAt.Time,
 			UpdatedAt:            details.UpdatedAt.Time,

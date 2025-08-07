@@ -25,12 +25,12 @@ INSERT INTO employee_details (
 `
 
 type CreateEmployeeDetailsParams struct {
-	EmployeeID           int64  `json:"employee_id"`
-	LanguageCode         string `json:"language_code"`
-	Surname              string `json:"surname"`
-	Name                 string `json:"name"`
-	Middlename           string `json:"middlename"`
-	IsEmployeeDetailsNew bool   `json:"is_employee_details_new"`
+	EmployeeID           int64       `json:"employee_id"`
+	LanguageCode         string      `json:"language_code"`
+	Surname              string      `json:"surname"`
+	Name                 string      `json:"name"`
+	Middlename           pgtype.Text `json:"middlename"`
+	IsEmployeeDetailsNew bool        `json:"is_employee_details_new"`
 }
 
 type CreateEmployeeDetailsRow struct {
@@ -135,11 +135,11 @@ RETURNING id, created_at, updated_at
 `
 
 type UpdateEmployeeDetailsParams struct {
-	Surname              string `json:"surname"`
-	Name                 string `json:"name"`
-	Middlename           string `json:"middlename"`
-	IsEmployeeDetailsNew bool   `json:"is_employee_details_new"`
-	ID                   int64  `json:"id"`
+	Surname              string      `json:"surname"`
+	Name                 string      `json:"name"`
+	Middlename           pgtype.Text `json:"middlename"`
+	IsEmployeeDetailsNew bool        `json:"is_employee_details_new"`
+	ID                   int64       `json:"id"`
 }
 
 type UpdateEmployeeDetailsRow struct {

@@ -41,6 +41,10 @@ WHERE id = $1;
 DELETE FROM employee_main_research_area_key_topics
 WHERE id = $1;
 
+-- name: DeleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID :exec
+DELETE FROM employee_main_research_area_key_topics
+where employee_main_research_area_id = $1;
+
 -- name: GetEmployeeMainResearchAreaByID :one
 SELECT *
 FROM employee_main_research_areas

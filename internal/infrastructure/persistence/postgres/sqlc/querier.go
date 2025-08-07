@@ -45,6 +45,7 @@ type Querier interface {
 	DeleteEmployeeDetails(ctx context.Context, id int64) error
 	DeleteEmployeeMainResearchArea(ctx context.Context, id int64) error
 	DeleteEmployeeMainResearchAreaKeyTopic(ctx context.Context, id int64) error
+	DeleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID(ctx context.Context, employeeMainResearchAreaID int64) error
 	DeleteEmployeeParticipationInEvent(ctx context.Context, id int64) error
 	DeleteEmployeeParticipationInProfessionalCommunity(ctx context.Context, id int64) error
 	DeleteEmployeePatent(ctx context.Context, id int64) error

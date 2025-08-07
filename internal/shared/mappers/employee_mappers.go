@@ -90,6 +90,7 @@ func MapEmployeeMainResearchAreaDomainToResponseDTO(employeeMRA *domain.Employee
 	return &dtos.EmployeeMainResearchAreaResponse{
 		ID:         employeeMRA.ID,
 		Discipline: employeeMRA.Discipline,
+		Area:       employeeMRA.Area,
 		KeyTopics:  keyTopics,
 		CreatedAt:  employeeMRA.CreatedAt,
 		UpdatedAt:  employeeMRA.UpdatedAt,

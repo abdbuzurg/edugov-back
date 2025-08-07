@@ -32,6 +32,7 @@ func (r *pgEmployeeMainResearchAreaRepository) CreateMRA(ctx context.Context, em
 		EmployeeID:   employeeMRA.EmployeeID,
 		LanguageCode: employeeMRA.LanguageCode,
 		Discipline:   employeeMRA.Discipline,
+		Area:         employeeMRA.Area,
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to create employee main research area: %w", err))
@@ -92,7 +93,7 @@ func (r *pgEmployeeMainResearchAreaRepository) UpdateRAKT(ctx context.Context, r
 }
 
 func (r *pgEmployeeMainResearchAreaRepository) DeleteMRA(ctx context.Context, id int64) error {
-	if err := r.queries.DeleteEmployeeMainResearchAreaKeyTopic(ctx, id); err != nil {
+	if err := r.queries.DeleteEmployeeMainResearchArea(ctx, id); err != nil {
 		return custom_errors.InternalServerError(fmt.Errorf("failed to delete employee main research area: %w", err))
 	}
 
@@ -102,6 +103,14 @@ func (r *pgEmployeeMainResearchAreaRepository) DeleteMRA(ctx context.Context, id
 func (r *pgEmployeeMainResearchAreaRepository) DeleteRAKT(ctx context.Context, id int64) error {
 	if err := r.queries.DeleteEmployeeMainResearchAreaKeyTopic(ctx, id); err != nil {
 		return custom_errors.InternalServerError(fmt.Errorf("failed to delete main research area key topic: %w", err))
+	}
+
+	return nil
+}
+
+func (r *pgEmployeeMainResearchAreaRepository) DeleteRAKTbyMraID(ctx context.Context, id int64) error {
+	if err := r.queries.DeleteEmployeeMainResearchAreaKeyTopicsByEmployeeMainResearchAreaID(ctx, id); err != nil {
+		return custom_errors.InternalServerError(fmt.Errorf("failed to delete research area key topic by research area id(%d): %w", id, err))
 	}
 
 	return nil
@@ -172,13 +181,13 @@ func (r *pgEmployeeMainResearchAreaRepository) GetRAKTByMRAIDAndLanguageCode(ctx
 	rakts := make([]*domain.ResearchAreaKeyTopic, len(raktsResult))
 	for index, rakt := range raktsResult {
 		rakts[index] = &domain.ResearchAreaKeyTopic{
-			ID:            rakt.ID,
-      EmployeeMainResearchAreaID: rakt.EmployeeMainResearchAreaID,
-			KeyTopicTitle: rakt.KeyTopicTitle,
-			CreatedAt:     rakt.CreatedAt.Time,
-			UpdatedAt:     rakt.UpdatedAt.Time,
+			ID:                         rakt.ID,
+			EmployeeMainResearchAreaID: rakt.EmployeeMainResearchAreaID,
+			KeyTopicTitle:              rakt.KeyTopicTitle,
+			CreatedAt:                  rakt.CreatedAt.Time,
+			UpdatedAt:                  rakt.UpdatedAt.Time,
 		}
 	}
 
-  return rakts, nil
+	return rakts, nil
 }

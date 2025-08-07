@@ -60,6 +60,7 @@ func main() {
 	employeeRefresherRepo := postgres.NewPgEmployeeRefresherCourseRepository(store)
 	employeePIERepo := postgres.NewPgEmployeeParticipationInEventRepository(store)
 	employeeResearchActivityRepo := postgres.NewPgEmployeeResearchActivityRepository(store)
+	employeeMRARepo := postgres.NewPgEmployeeMainResearchAreaRepository(store)
 
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
@@ -84,6 +85,7 @@ func main() {
 	employeeRefresherUC := usecases.NewEmployeeRefresherCourseUsecase(employeeRefresherRepo, validator)
 	employeeParticipationInEventUC := usecases.NewEmployeeParticipationInEventUsecase(employeePIERepo, validator)
 	employeeResearchActivityUC := usecases.NewEmployeeResearchActivityUsecase(employeeResearchActivityRepo, validator)
+	employeeMRAUC := usecases.NewEmployeeMainResearchAreaUsecase(employeeMRARepo, store, validator)
 
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
@@ -99,6 +101,7 @@ func main() {
 	employeeRefresherHandler := handlers.NewEmployeeRefresherCourseHandler(employeeRefresherUC)
 	employeePIEHandler := handlers.NewEmployeeParticipationInEventHandler(employeeParticipationInEventUC)
 	employeeResearchActivityHandler := handlers.NewEmployeeResearchActivityHandler(employeeResearchActivityUC)
+	employeeMRAHandler := handlers.NewEmployeeMainResearchAreaHandler(employeeMRAUC)
 
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
@@ -175,6 +178,11 @@ func main() {
 	employeeMux.HandleFunc("POST /research-activity", employeeResearchActivityHandler.Create)
 	employeeMux.HandleFunc("PUT /research-activity", employeeResearchActivityHandler.Update)
 	employeeMux.HandleFunc("DELETE /research-activity/{id}", employeeResearchActivityHandler.Delete)
+	// --- employee/mra
+	employeeMux.HandleFunc("GET /mra/{employeeID}", employeeMRAHandler.GetByEmployeeIDAndLanguageCode)
+	employeeMux.HandleFunc("POST /mra", employeeMRAHandler.Create)
+	employeeMux.HandleFunc("PUT /mra", employeeMRAHandler.Update)
+	employeeMux.HandleFunc("DELETE /mra/{id}", employeeMRAHandler.Delete)
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
 

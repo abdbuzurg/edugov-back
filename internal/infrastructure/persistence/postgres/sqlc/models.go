@@ -36,7 +36,7 @@ type EmployeeDetail struct {
 	LanguageCode         string             `json:"language_code"`
 	Surname              string             `json:"surname"`
 	Name                 string             `json:"name"`
-	Middlename           string             `json:"middlename"`
+	Middlename           pgtype.Text        `json:"middlename"`
 	IsEmployeeDetailsNew bool               `json:"is_employee_details_new"`
 	CreatedAt            pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
