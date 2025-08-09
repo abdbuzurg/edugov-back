@@ -14,6 +14,18 @@ type UpdateEmployeeRequest struct {
 	Details      []*UpdateEmployeeDetailsRequest `json:"details" validate:"omitempty,dive"`
 }
 
+type PersonnelPaginatedQueryParameters struct {
+	UID                   string
+	Name                  string
+	Surname               string
+	Middleware            string
+	HighestAcademicDegree string
+	Speciality            string
+	WorkExperience        string
+	Limit                 int64
+	Page                  int64
+}
+
 // ---- RESPONSE DTOS ----
 
 type EmployeeResponse struct {
@@ -35,4 +47,19 @@ type EmployeeResponse struct {
 	ParticipationInEvents                  []*EmployeeParticipationInEventResponse                 `json:"participationInEvents,omitempty"`
 	ResearchActivities                     []*EmployeeResearchActivityResponse                     `json:"researchActivities,omitempty"`
 	Socials                                []*EmployeeSocialResponse                               `json:"socials,omitempty"`
+}
+
+type PersonnelProfileData struct {
+	Fullname              string                   `json:"fullname"`
+	UID                   string                   `json:"uid"`
+	HighestAcademicDegree string                   `json:"highestAcademicDegree"`
+	Speciality            string                   `json:"speciality"`
+	CurrentWorkplace      string                   `json:"currentWorkplace"`
+	WorkExperience        int64                    `json:"workExperience"`
+	Socials               []EmployeeSocialResponse `json:"socials"`
+}
+
+type PersonnelPaginatedResponse struct {
+	Data     []PersonnelProfileData `json:"data"`
+	NextPage int64                  `json:"nextPage"`
 }

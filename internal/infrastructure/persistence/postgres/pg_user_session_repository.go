@@ -12,17 +12,25 @@ import (
 )
 
 type pgUserSessionRepository struct {
-	store *Store
+	store   *Store
+	queries *sqlc.Queries
 }
 
 func NewPGUserSessionRepository(store *Store) repositories.UserSessionRepository {
 	return &pgUserSessionRepository{
-		store: store,
+		store:   store,
+		queries: store.Queries,
+	}
+}
+
+func NewPgUserSessionWithQuery(q *sqlc.Queries) repositories.UserSessionRepository {
+	return &pgUserSessionRepository{
+		queries: q,
 	}
 }
 
 func (r *pgUserSessionRepository) CreateSession(ctx context.Context, session *domain.UserSession) (*domain.UserSession, error) {
-	createdUserSession, err := r.store.Queries.CreateUserSession(ctx, sqlc.CreateUserSessionParams{
+	createdUserSession, err := r.queries.CreateUserSession(ctx, sqlc.CreateUserSessionParams{
 		UserID:       session.UserID,
 		RefreshToken: session.RefreshToken,
 		ExpiresAt: pgtype.Timestamptz{
@@ -42,7 +50,7 @@ func (r *pgUserSessionRepository) CreateSession(ctx context.Context, session *do
 }
 
 func (r *pgUserSessionRepository) UpdateSession(ctx context.Context, session *domain.UserSession) (*domain.UserSession, error) {
-	updatedUserSession, err := r.store.Queries.UpdateUserSession(ctx, sqlc.UpdateUserSessionParams{
+	updatedUserSession, err := r.queries.UpdateUserSession(ctx, sqlc.UpdateUserSessionParams{
 		ID:           session.ID,
 		RefreshToken: session.RefreshToken,
 		ExpiresAt: pgtype.Timestamptz{
@@ -61,7 +69,7 @@ func (r *pgUserSessionRepository) UpdateSession(ctx context.Context, session *do
 }
 
 func (r *pgUserSessionRepository) DeleteSession(ctx context.Context, id int64) error {
-	err := r.store.Queries.DeleteUserSessionByID(ctx, id)
+	err := r.queries.DeleteUserSessionByID(ctx, id)
 	if err != nil {
 		return custom_errors.InternalServerError(fmt.Errorf("failed to delete user session by ID(%d): %w", id, err))
 	}
@@ -70,7 +78,7 @@ func (r *pgUserSessionRepository) DeleteSession(ctx context.Context, id int64) e
 }
 
 func (r *pgUserSessionRepository) DeleteSessionsByUserID(ctx context.Context, userID int64) error {
-	err := r.store.Queries.DeleteUserSessionByUserID(ctx, userID)
+	err := r.queries.DeleteUserSessionByUserID(ctx, userID)
 	if err != nil {
 		return custom_errors.InternalServerError(fmt.Errorf("failed to delete user session by user_id (%d): %w", userID, err))
 	}
@@ -79,7 +87,7 @@ func (r *pgUserSessionRepository) DeleteSessionsByUserID(ctx context.Context, us
 }
 
 func (r *pgUserSessionRepository) GetSessionByToken(ctx context.Context, token string) (*domain.UserSession, error) {
-	userSessionResult, err := r.store.Queries.GetUserSessionByToken(ctx, token)
+	userSessionResult, err := r.queries.GetUserSessionByToken(ctx, token)
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive user session by refresh_token (%s): %w", token, err))
 	}

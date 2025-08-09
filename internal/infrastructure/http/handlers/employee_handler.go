@@ -185,3 +185,8 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 
 	http.ServeFile(w, r, filePath)
 }
+
+func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+}

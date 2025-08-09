@@ -84,25 +84,38 @@ func (uc *authUsecase) generateAndStoreTokens(ctx context.Context, user *domain.
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to generate refresh token: %w", err))
 	}
 
-	session := &domain.UserSession{
-		UserID:       user.ID,
-		RefreshToken: refreshToken,
-		ExpiresAt:    refreshTokenExp,
-	}
-
-	_, err = uc.userSessionRepo.CreateSession(ctx, session)
-	if err != nil {
-		return nil, err
-	}
-
 	var uid string
-	if user.UserType == "employee" {
-		employee, err := uc.employeeRepo.GetByID(ctx, user.EntityID)
-		if err != nil {
-			return nil, err
+	err = uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
+		txUserSessionRepo := postgres.NewPgUserSessionWithQuery(q)
+
+		if err := txUserSessionRepo.DeleteSessionsByUserID(ctx, user.ID); err != nil {
+			return err
 		}
 
-		uid = employee.UniqueID
+		session := &domain.UserSession{
+			UserID:       user.ID,
+			RefreshToken: refreshToken,
+			ExpiresAt:    refreshTokenExp,
+		}
+
+		_, err = uc.userSessionRepo.CreateSession(ctx, session)
+		if err != nil {
+			return err
+		}
+
+		if user.UserType == "employee" {
+			employee, err := uc.employeeRepo.GetByID(ctx, user.EntityID)
+			if err != nil {
+				return err
+			}
+
+			uid = employee.UniqueID
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &dtos.AuthResponse{
@@ -280,11 +293,6 @@ func (uc *authUsecase) RefreshToken(ctx context.Context, refreshToken string) (*
 
 	if session.UserID != refreshClaims.UserID {
 		return nil, custom_errors.Unauthorized(fmt.Errorf("refresh token user mismatch"))
-	}
-
-	err = uc.userSessionRepo.DeleteSession(ctx, session.ID)
-	if err != nil {
-		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to revoke old refresh token: %w", err))
 	}
 
 	user, err := uc.userRepo.GetByID(ctx, session.UserID)
