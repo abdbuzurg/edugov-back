@@ -77,3 +77,66 @@ func (q *Queries) GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID st
 	)
 	return i, err
 }
+
+const getPersonnelPaginated = `-- name: GetPersonnelPaginated :many
+SELECT DISTINCT employees.id
+FROM employees
+INNER JOIN employee_details on employee_details.employee_id = employees.id
+INNER JOIN employee_degrees on employee_degrees.employee_id = employees.id
+INNER JOIN employee_work_experiences on employee_work_experiences.employee_id = employees.id
+WHERE 
+  -- MANDATORY FILTERS
+  employee_details.language_code = $1
+  AND employee_degrees.language_code = $1
+  AND employee_work_experiences.language_code = $1
+  -- OPTIONAL FILTERS
+  AND ($2::text IS NULL OR employees.uid = $2)
+  AND ($3::text IS NULL OR employee_details.name = $3)
+  AND ($4::text IS NULL OR employee_details.surname = $4)
+  AND ($5::text IS NULL OR employee_details.middlename = $2)
+  AND ($6::text IS NULL OR employees_degrees.speciality = $6)
+ORDER BY 
+  employees.id ASC
+LIMIT $8
+OFFSET $7
+`
+
+type GetPersonnelPaginatedParams struct {
+	LanguageCode string      `json:"language_code"`
+	Uid          pgtype.Text `json:"uid"`
+	Name         pgtype.Text `json:"name"`
+	Surname      pgtype.Text `json:"surname"`
+	Middlename   pgtype.Text `json:"middlename"`
+	Speciality   pgtype.Text `json:"speciality"`
+	Page         int32       `json:"page"`
+	Limit        int32       `json:"limit"`
+}
+
+func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getPersonnelPaginated,
+		arg.LanguageCode,
+		arg.Uid,
+		arg.Name,
+		arg.Surname,
+		arg.Middlename,
+		arg.Speciality,
+		arg.Page,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

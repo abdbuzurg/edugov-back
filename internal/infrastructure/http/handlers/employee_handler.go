@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"backend/internal/application/dtos"
 	"backend/internal/application/usecases"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/utils"
 	"fmt"
@@ -188,5 +190,35 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 
 func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+
+	filter := &dtos.PersonnelPaginatedQueryParameters{
+		UID:                   query.Get("uid"),
+		Name:                  query.Get("name"),
+		Surname:               query.Get("surname"),
+		Middleware:            query.Get("middlename"),
+		HighestAcademicDegree: query.Get("highestAcademicDegree"),
+		Speciality:            query.Get("speciality"),
+		LanguageCode:          middleware.GetLanguageFromContext(r.Context()),
+	}
+
+	workExperience, err := strconv.ParseInt(query.Get("workExperience"), 0, 64)
+	if err != nil {
+		workExperience = 0
+	}
+	filter.WorkExperience = workExperience
+
+	page, err := strconv.ParseInt(query.Get("page"), 0, 64)
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("invalid page parameter provided: %w", err)))
+		return
+	}
+	filter.Page = page
+
+	limit, err := strconv.ParseInt(query.Get("limit"), 0, 64)
+	if err != nil {
+		utils.RespondWithError(w, r, custom_errors.InternalServerError(fmt.Errorf("invalid page parameter provided: %w", err)))
+		return
+	}
+	filter.Limit = limit
 
 }

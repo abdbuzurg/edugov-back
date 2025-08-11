@@ -15,13 +15,14 @@ type UpdateEmployeeRequest struct {
 }
 
 type PersonnelPaginatedQueryParameters struct {
+	LanguageCode          string
 	UID                   string
 	Name                  string
 	Surname               string
 	Middleware            string
 	HighestAcademicDegree string
 	Speciality            string
-	WorkExperience        string
+	WorkExperience        int64
 	Limit                 int64
 	Page                  int64
 }
