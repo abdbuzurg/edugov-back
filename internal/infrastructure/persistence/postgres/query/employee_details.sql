@@ -34,3 +34,11 @@ WHERE id = $1;
 SELECT *
 FROM employee_details
 WHERE employee_id = $1;
+
+-- name: GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCode :one
+SELECT *
+FROM employee_details
+WHERE 
+  employee_id = $1
+  AND language_code = $2
+  AND is_employee_details_new = 'true';

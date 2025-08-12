@@ -102,6 +102,7 @@ const getEmployeeDegreesByEmployeeIDAndLanguageCode = `-- name: GetEmployeeDegre
 SELECT id, employee_id, language_code, university_name, degree_level, speciality, date_start, date_end, given_by, date_degree_recieved, created_at, updated_at
 FROM employee_degrees
 WHERE employee_id = $1 AND language_code = $2
+ORDER BY employee_degrees.date_degree_recieved DESC
 `
 
 type GetEmployeeDegreesByEmployeeIDAndLanguageCodeParams struct {

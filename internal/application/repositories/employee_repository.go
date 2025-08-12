@@ -1,9 +1,15 @@
 package repositories
 
 import (
+	"backend/internal/application/dtos"
 	"backend/internal/domain"
 	"context"
 )
+
+type GetPersonnelPaginatedQueryResult struct {
+	ID       int64
+	UniqueID string
+}
 
 type EmployeeRepository interface {
 	//Create - inserts employee into the database.
@@ -20,4 +26,10 @@ type EmployeeRepository interface {
 
 	//GetByUniqueID - retrives a single employee by their uniqueIdentifer.
 	GetByUniqueID(ctx context.Context, uniqueID string) (*domain.Employee, error)
+
+	//GetPersonnelIDsPaginated - retrives employee IDs from db that satisfy the filter parameters in paginated form
+	GetPersonnelIDsPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) ([]*GetPersonnelPaginatedQueryResult, error)
+
+	//CountPersonnel - count total number of personnel (by unique employee_id) from db that satisfy the filter paramenter
+	CountPersonnel(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (int64, error)
 }

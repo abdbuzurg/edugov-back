@@ -63,6 +63,37 @@ func (q *Queries) DeleteEmployeeDetails(ctx context.Context, id int64) error {
 	return err
 }
 
+const getCurrentEmployeeDetailsByEmployeeIDAndLanguageCode = `-- name: GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCode :one
+SELECT id, employee_id, language_code, surname, name, middlename, is_employee_details_new, created_at, updated_at
+FROM employee_details
+WHERE 
+  employee_id = $1
+  AND language_code = $2
+  AND is_employee_details_new = 'true'
+`
+
+type GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCodeParams struct {
+	EmployeeID   int64  `json:"employee_id"`
+	LanguageCode string `json:"language_code"`
+}
+
+func (q *Queries) GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCode(ctx context.Context, arg GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCodeParams) (EmployeeDetail, error) {
+	row := q.db.QueryRow(ctx, getCurrentEmployeeDetailsByEmployeeIDAndLanguageCode, arg.EmployeeID, arg.LanguageCode)
+	var i EmployeeDetail
+	err := row.Scan(
+		&i.ID,
+		&i.EmployeeID,
+		&i.LanguageCode,
+		&i.Surname,
+		&i.Name,
+		&i.Middlename,
+		&i.IsEmployeeDetailsNew,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getEmployeeDetailsByEmployeeID = `-- name: GetEmployeeDetailsByEmployeeID :many
 SELECT id, employee_id, language_code, surname, name, middlename, is_employee_details_new, created_at, updated_at
 FROM employee_details

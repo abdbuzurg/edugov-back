@@ -124,6 +124,7 @@ func main() {
 	employeeMux.HandleFunc("GET /{uid}", employeeHandlers.GetByUID)
 	employeeMux.HandleFunc("PUT /profile-picture/{uid}", employeeHandlers.UpdateProfilePicture)
 	employeeMux.HandleFunc("GET /profile-picture/{uid}", employeeHandlers.GetProfilePicture)
+	employeeMux.HandleFunc("GET /personnel", employeeHandlers.GetPersonnelPaginated)
 
 	// ---- employee/detials
 	employeeMux.HandleFunc("PUT /details", authMiddleware(employeeDetailsHandler.Update))

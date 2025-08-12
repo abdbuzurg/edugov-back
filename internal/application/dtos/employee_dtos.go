@@ -19,7 +19,7 @@ type PersonnelPaginatedQueryParameters struct {
 	UID                   string
 	Name                  string
 	Surname               string
-	Middleware            string
+	Middlename            string
 	HighestAcademicDegree string
 	Speciality            string
 	WorkExperience        int64
@@ -56,11 +56,12 @@ type PersonnelProfileData struct {
 	HighestAcademicDegree string                   `json:"highestAcademicDegree"`
 	Speciality            string                   `json:"speciality"`
 	CurrentWorkplace      string                   `json:"currentWorkplace"`
-	WorkExperience        int64                    `json:"workExperience"`
+	WorkExperienceYears   int64                    `json:"workExperienceYears"`
+	WorkExperienceMonths  int64                    `json:"workExperienceMonths"`
 	Socials               []EmployeeSocialResponse `json:"socials"`
 }
 
 type PersonnelPaginatedResponse struct {
 	Data     []PersonnelProfileData `json:"data"`
-	NextPage int64                  `json:"nextPage"`
+	NextPage int64                  `json:"nextPage,omitempty"`
 }

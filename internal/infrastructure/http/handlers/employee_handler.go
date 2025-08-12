@@ -188,6 +188,10 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 	http.ServeFile(w, r, filePath)
 }
 
+// GET /employee/personnel
+// Request body - none
+// Request param - dtos.PersonnelPaginatedQueryParameters
+// Response body - none
 func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
@@ -195,7 +199,7 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 		UID:                   query.Get("uid"),
 		Name:                  query.Get("name"),
 		Surname:               query.Get("surname"),
-		Middleware:            query.Get("middlename"),
+		Middlename:            query.Get("middlename"),
 		HighestAcademicDegree: query.Get("highestAcademicDegree"),
 		Speciality:            query.Get("speciality"),
 		LanguageCode:          middleware.GetLanguageFromContext(r.Context()),
@@ -221,4 +225,11 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 	}
 	filter.Limit = limit
 
+	personnel, err := h.employeeUC.GetPersonnelPaginated(r.Context(), filter)
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	utils.RespondWithJSON(w, r, http.StatusOK, personnel)
 }

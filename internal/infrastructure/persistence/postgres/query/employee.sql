@@ -20,23 +20,73 @@ FROM employees
 WHERE unique_id = $1;
 
 -- name: GetPersonnelPaginated :many
-SELECT DISTINCT employees.id
-FROM employees
-INNER JOIN employee_details on employee_details.employee_id = employees.id
-INNER JOIN employee_degrees on employee_degrees.employee_id = employees.id
-INNER JOIN employee_work_experiences on employee_work_experiences.employee_id = employees.id
-WHERE 
-  -- MANDATORY FILTERS
-  employee_details.language_code = sqlc.arg(language_code)
-  AND employee_degrees.language_code = sqlc.arg(language_code)
-  AND employee_work_experiences.language_code = sqlc.arg(language_code)
-  -- OPTIONAL FILTERS
-  AND (sqlc.narg(uid)::text IS NULL OR employees.uid = sqlc.narg(uid))
-  AND (sqlc.narg(name)::text IS NULL OR employee_details.name = sqlc.narg(name))
-  AND (sqlc.narg(surname)::text IS NULL OR employee_details.surname = sqlc.narg(surname))
-  AND (sqlc.narg(middlename)::text IS NULL OR employee_details.middlename = sqlc.narg(uid))
-  AND (sqlc.narg(speciality)::text IS NULL OR employees_degrees.speciality = sqlc.narg(speciality))
+SELECT 
+	employees.id,
+	employees.unique_id
+FROM 
+	employees	
+WHERE
+	(sqlc.narg(uid)::text IS NULL or employees.unique_id = sqlc.narg(uid))
+	AND EXISTS (
+		SELECT 1
+		FROM employee_details
+		WHERE 
+			employee_details.language_code = sqlc.arg(language_code)
+			and employee_details.is_employee_details_new = True
+		  AND (sqlc.narg(name)::text IS NULL OR employee_details.name = sqlc.narg(name))
+		 	AND (sqlc.narg(surname)::text IS NULL OR employee_details.surname = sqlc.narg(surname))
+		  AND (sqlc.narg(middlename)::text IS NULL OR employee_details.middlename = sqlc.narg(middlename))		
+	  )
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_degrees
+  		WHERE 
+  			employee_degrees.employee_id = employees.id
+  			and employee_degrees.language_code = sqlc.arg(language_code)
+  			and (sqlc.narg(speciality)::text IS NULL OR employee_degrees.speciality = sqlc.narg(speciality))
+  	)
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_work_experiences
+  		WHERE 
+  			employee_work_experiences.employee_id = employees.id
+  			AND employee_work_experiences.language_code = sqlc.arg(language_code)
+  	)
 ORDER BY 
-  employees.id ASC
+	employees.id,
+	employees.unique_id
 LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg(page);
+
+-- name: CountPersonnel :one
+SELECT 
+	COUNT(*)
+FROM 
+	employees	
+WHERE
+	(sqlc.narg(uid)::text IS NULL or employees.unique_id = sqlc.narg(uid))
+	AND EXISTS (
+		SELECT 1
+		FROM employee_details
+		WHERE 
+			employee_details.language_code = sqlc.arg(language_code)
+			and employee_details.is_employee_details_new = True
+		  AND (sqlc.narg(name)::text IS NULL OR employee_details.name = sqlc.narg(name))
+		 	AND (sqlc.narg(surname)::text IS NULL OR employee_details.surname = sqlc.narg(surname))
+		  AND (sqlc.narg(middlename)::text IS NULL OR employee_details.middlename = sqlc.narg(middlename))		
+	  )
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_degrees
+  		WHERE 
+  			employee_degrees.employee_id = employees.id
+  			and employee_degrees.language_code = sqlc.arg(language_code)
+  			and (sqlc.narg(speciality)::text IS NULL OR employee_degrees.speciality = sqlc.narg(speciality))
+  	)
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_work_experiences
+  		WHERE 
+  			employee_work_experiences.employee_id = employees.id
+  			AND employee_work_experiences.language_code = sqlc.arg(language_code)
+  	);

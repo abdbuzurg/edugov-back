@@ -80,35 +80,74 @@ func (r *pgEmployeeRepository) GetByUniqueID(ctx context.Context, uniqueIdentife
 	}, nil
 }
 
-func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) ([]int64, error) {
-	personnel, err := r.queries.GetPersonnelPaginated(ctx, sqlc.GetPersonnelPaginatedParams{
+func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) ([]*repositories.GetPersonnelPaginatedQueryResult, error) {
+	personnelResult, err := r.queries.GetPersonnelPaginated(ctx, sqlc.GetPersonnelPaginatedParams{
 		LanguageCode: filter.LanguageCode,
 		Uid: pgtype.Text{
-			Valid:  true,
+			Valid:  filter.UID != "",
 			String: filter.UID,
 		},
 		Name: pgtype.Text{
-			Valid:  true,
+			Valid:  filter.Name != "",
 			String: filter.Name,
 		},
 		Surname: pgtype.Text{
-			Valid:  true,
+			Valid:  filter.Surname != "",
 			String: filter.Surname,
 		},
 		Middlename: pgtype.Text{
-			Valid:  true,
-			String: filter.Middleware,
+			Valid:  filter.Middlename != "",
+			String: filter.Middlename,
 		},
 		Speciality: pgtype.Text{
-			Valid:  true,
+			Valid:  filter.Speciality != "",
 			String: filter.Speciality,
 		},
-		Page:  int32(filter.Page),
+		Page:  int32((filter.Page - 1) * filter.Limit),
 		Limit: int32(filter.Limit),
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive paginated personnel data (page - %d, limit - %d): %w", filter.Page, filter.Limit, err))
 	}
 
+	personnel := make([]*repositories.GetPersonnelPaginatedQueryResult, len(personnelResult))
+	for index := range personnel {
+		personnel[index] = &repositories.GetPersonnelPaginatedQueryResult{
+			ID:       personnelResult[index].ID,
+			UniqueID: personnelResult[index].UniqueID,
+		}
+	}
+
 	return personnel, nil
+}
+
+func (r *pgEmployeeRepository) CountPersonnel(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (int64, error) {
+	count, err := r.queries.CountPersonnel(ctx, sqlc.CountPersonnelParams{
+		LanguageCode: filter.LanguageCode,
+		Uid: pgtype.Text{
+			Valid:  filter.UID != "",
+			String: filter.UID,
+		},
+		Name: pgtype.Text{
+			Valid:  filter.Name != "",
+			String: filter.Name,
+		},
+		Surname: pgtype.Text{
+			Valid:  filter.Surname != "",
+			String: filter.Surname,
+		},
+		Middlename: pgtype.Text{
+			Valid:  filter.Middlename != "",
+			String: filter.Middlename,
+		},
+		Speciality: pgtype.Text{
+			Valid:  filter.Speciality != "",
+			String: filter.Speciality,
+		},
+	})
+	if err != nil {
+		return 0, custom_errors.InternalServerError(fmt.Errorf("could not count personnel: %w", err))
+	}
+
+	return count, nil
 }

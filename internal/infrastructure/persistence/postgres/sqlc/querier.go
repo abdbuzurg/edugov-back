@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CountPersonnel(ctx context.Context, arg CountPersonnelParams) (int64, error)
 	CreateEmployee(ctx context.Context, uniqueID string) (CreateEmployeeRow, error)
 	CreateEmployeeDegree(ctx context.Context, arg CreateEmployeeDegreeParams) (CreateEmployeeDegreeRow, error)
 	CreateEmployeeDetails(ctx context.Context, arg CreateEmployeeDetailsParams) (CreateEmployeeDetailsRow, error)
@@ -72,6 +73,7 @@ type Querier interface {
 	DeleteInstitutionSocial(ctx context.Context, id int64) error
 	DeleteUserSessionByID(ctx context.Context, id int64) error
 	DeleteUserSessionByUserID(ctx context.Context, userID int64) error
+	GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCode(ctx context.Context, arg GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCodeParams) (EmployeeDetail, error)
 	GetEmployeeByID(ctx context.Context, id int64) (Employee, error)
 	GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID string) (Employee, error)
 	GetEmployeeDegreeByID(ctx context.Context, id int64) (EmployeeDegree, error)
@@ -129,7 +131,7 @@ type Querier interface {
 	GetInstitutionResearchSupportInfrastructuresByInstitutionIDAndLanguageCode(ctx context.Context, arg GetInstitutionResearchSupportInfrastructuresByInstitutionIDAndLanguageCodeParams) ([]InstitutionResearchSupportInfrastructure, error)
 	GetInstitutionSocialByID(ctx context.Context, id int64) (InstitutionSocial, error)
 	GetInstitutionSocialsByInstitutionID(ctx context.Context, institutionID int64) ([]InstitutionSocial, error)
-	GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]int64, error)
+	GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]GetPersonnelPaginatedRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserSessionByToken(ctx context.Context, refreshToken string) (UserSession, error)

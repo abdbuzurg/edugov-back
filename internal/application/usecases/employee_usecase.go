@@ -8,6 +8,7 @@ import (
 	"backend/internal/infrastructure/persistence/postgres/sqlc"
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/mappers"
+	"backend/internal/shared/utils"
 	"context"
 	"fmt"
 
@@ -17,6 +18,7 @@ import (
 type EmployeeUsecase interface {
 	Delete(ctx context.Context, id int64) error
 	GetByUniqueID(ctx context.Context, uniqueID string) (*dtos.EmployeeResponse, error)
+	GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*dtos.PersonnelPaginatedResponse, error)
 }
 
 type employeeUsecase struct {
@@ -210,4 +212,120 @@ func (uc *employeeUsecase) GetByUniqueID(ctx context.Context, uniqueID string) (
 	}
 
 	return resp, nil
+}
+
+func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*dtos.PersonnelPaginatedResponse, error) {
+	result := &dtos.PersonnelPaginatedResponse{}
+	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
+		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
+		txEmployeeDetailsRepo := postgres.NewPGEmployeeDetailsRepositoryWithQueries(q)
+		txEmployeeDegreeRepo := postgres.NewPgEmployeeDegreeRepositoryWithQuery(q)
+		txEmployeeWorkExperienceRepo := postgres.NewPgEmployeeWorkExperienceRepositoryWithQuery(q)
+		txEmployeeSocialRepo := postgres.NewPgEmployeeSocialRepositoryWithQueries(q)
+
+		employeeIDsAndUIDs, err := txEmployeeRepo.GetPersonnelIDsPaginated(ctx, filter)
+		if err != nil {
+			if custom_errors.IsNotFound(err) {
+				result.Data = []dtos.PersonnelProfileData{}
+				result.NextPage = 0
+				return nil
+			}
+
+			return err
+		}
+		fmt.Println("employeeIDsAndUIDS", employeeIDsAndUIDs)
+
+		totalPersonnelByFilter, err := txEmployeeRepo.CountPersonnel(ctx, filter)
+		if err != nil && custom_errors.IsNotFound(err) {
+			return err
+		}
+
+		fmt.Println("count", totalPersonnelByFilter)
+
+		if totalPersonnelByFilter-filter.Page*filter.Limit > 0 {
+			result.NextPage = filter.Page + 1
+		} else {
+			result.NextPage = 0
+		}
+
+		personnelData := make([]dtos.PersonnelProfileData, len(employeeIDsAndUIDs))
+		for index := range personnelData {
+			//personnel UID
+			currentPersonnel := dtos.PersonnelProfileData{
+				UID: employeeIDsAndUIDs[index].UniqueID,
+			}
+			// personnel fullname
+			currentEmployeeDetails, err := txEmployeeDetailsRepo.GetCurrentDetailsByEmployeeIDAndLanguageCode(ctx, employeeIDsAndUIDs[index].ID, filter.LanguageCode)
+			if err != nil {
+				if custom_errors.IsNotFound(err) {
+					continue
+				}
+				return err
+			}
+			currentPersonnel.Fullname = fmt.Sprintf("%s %s", currentEmployeeDetails.Surname, currentEmployeeDetails.Name)
+			if currentEmployeeDetails.Middlename != "" {
+				currentPersonnel.Fullname += " " + currentEmployeeDetails.Middlename
+			}
+
+			//personnel degree (HighestAcademicDegree, Speciality)
+			currentEmployeeDegrees, err := txEmployeeDegreeRepo.GetByEmployeeIDAndLanguageCode(ctx, employeeIDsAndUIDs[index].ID, filter.LanguageCode)
+			if err != nil {
+				if custom_errors.IsNotFound(err) {
+					continue
+				}
+
+				return err
+			}
+			currentPersonnel.HighestAcademicDegree = currentEmployeeDegrees[0].DegreeLevel
+			currentPersonnel.Speciality = currentEmployeeDegrees[0].Speciality
+
+			// personnel work experience (CurrentWorkplace, WorkExperienceYears, WorkExperienceMonths)
+			currentEmployeeWorkExperiences, err := txEmployeeWorkExperienceRepo.GetByEmployeeIDAndLanguageCode(ctx, employeeIDsAndUIDs[index].ID, filter.LanguageCode)
+			if err != nil {
+				if custom_errors.IsNotFound(err) {
+					continue
+				}
+				return err
+			}
+			currentPersonnel.CurrentWorkplace = currentEmployeeWorkExperiences[0].Workplace
+
+			workExperienceCountYears := 0
+			workExperienceCountMonths := 0
+			for _, workExperience := range currentEmployeeWorkExperiences {
+				yearDiff, monthDiff := utils.DateDifference(workExperience.DateStart, workExperience.DateEnd)
+				workExperienceCountYears += yearDiff
+				workExperienceCountMonths += monthDiff
+			}
+
+			workExperienceCountYears += workExperienceCountMonths / 12
+			workExperienceCountMonths = workExperienceCountMonths % 12
+
+			currentPersonnel.WorkExperienceYears = int64(workExperienceCountYears)
+			currentPersonnel.WorkExperienceMonths = int64(workExperienceCountMonths)
+
+			// personnel socials
+			currentEmployeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, employeeIDsAndUIDs[index].ID)
+			if err != nil && !custom_errors.IsNotFound(err) {
+				return err
+			}
+
+			for _, social := range currentEmployeeSocials {
+				if len(currentPersonnel.Socials) == 5 {
+					break
+				}
+
+				currentPersonnel.Socials = append(currentPersonnel.Socials, *mappers.MapEmployeeSocialDomainToResponseDTO(social))
+			}
+
+			personnelData[index] = currentPersonnel
+		}
+
+		result.Data = personnelData
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

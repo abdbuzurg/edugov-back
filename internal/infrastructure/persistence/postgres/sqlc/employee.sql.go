@@ -11,6 +11,63 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countPersonnel = `-- name: CountPersonnel :one
+SELECT 
+	COUNT(*)
+FROM 
+	employees	
+WHERE
+	($1::text IS NULL or employees.unique_id = $1)
+	AND EXISTS (
+		SELECT 1
+		FROM employee_details
+		WHERE 
+			employee_details.language_code = $2
+			and employee_details.is_employee_details_new = True
+		  AND ($3::text IS NULL OR employee_details.name = $3)
+		 	AND ($4::text IS NULL OR employee_details.surname = $4)
+		  AND ($5::text IS NULL OR employee_details.middlename = $5)		
+	  )
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_degrees
+  		WHERE 
+  			employee_degrees.employee_id = employees.id
+  			and employee_degrees.language_code = $2
+  			and ($6::text IS NULL OR employee_degrees.speciality = $6)
+  	)
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_work_experiences
+  		WHERE 
+  			employee_work_experiences.employee_id = employees.id
+  			AND employee_work_experiences.language_code = $2
+  	)
+`
+
+type CountPersonnelParams struct {
+	Uid          pgtype.Text `json:"uid"`
+	LanguageCode string      `json:"language_code"`
+	Name         pgtype.Text `json:"name"`
+	Surname      pgtype.Text `json:"surname"`
+	Middlename   pgtype.Text `json:"middlename"`
+	Speciality   pgtype.Text `json:"speciality"`
+}
+
+func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countPersonnel,
+		arg.Uid,
+		arg.LanguageCode,
+		arg.Name,
+		arg.Surname,
+		arg.Middlename,
+		arg.Speciality,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEmployee = `-- name: CreateEmployee :one
 INSERT INTO employees (
   unique_id
@@ -79,31 +136,48 @@ func (q *Queries) GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID st
 }
 
 const getPersonnelPaginated = `-- name: GetPersonnelPaginated :many
-SELECT DISTINCT employees.id
-FROM employees
-INNER JOIN employee_details on employee_details.employee_id = employees.id
-INNER JOIN employee_degrees on employee_degrees.employee_id = employees.id
-INNER JOIN employee_work_experiences on employee_work_experiences.employee_id = employees.id
-WHERE 
-  -- MANDATORY FILTERS
-  employee_details.language_code = $1
-  AND employee_degrees.language_code = $1
-  AND employee_work_experiences.language_code = $1
-  -- OPTIONAL FILTERS
-  AND ($2::text IS NULL OR employees.uid = $2)
-  AND ($3::text IS NULL OR employee_details.name = $3)
-  AND ($4::text IS NULL OR employee_details.surname = $4)
-  AND ($5::text IS NULL OR employee_details.middlename = $2)
-  AND ($6::text IS NULL OR employees_degrees.speciality = $6)
+SELECT 
+	employees.id,
+	employees.unique_id
+FROM 
+	employees	
+WHERE
+	($1::text IS NULL or employees.unique_id = $1)
+	AND EXISTS (
+		SELECT 1
+		FROM employee_details
+		WHERE 
+			employee_details.language_code = $2
+			and employee_details.is_employee_details_new = True
+		  AND ($3::text IS NULL OR employee_details.name = $3)
+		 	AND ($4::text IS NULL OR employee_details.surname = $4)
+		  AND ($5::text IS NULL OR employee_details.middlename = $5)		
+	  )
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_degrees
+  		WHERE 
+  			employee_degrees.employee_id = employees.id
+  			and employee_degrees.language_code = $2
+  			and ($6::text IS NULL OR employee_degrees.speciality = $6)
+  	)
+  	AND EXISTS (
+  		SELECT 1
+  		FROM employee_work_experiences
+  		WHERE 
+  			employee_work_experiences.employee_id = employees.id
+  			AND employee_work_experiences.language_code = $2
+  	)
 ORDER BY 
-  employees.id ASC
+	employees.id,
+	employees.unique_id
 LIMIT $8
 OFFSET $7
 `
 
 type GetPersonnelPaginatedParams struct {
-	LanguageCode string      `json:"language_code"`
 	Uid          pgtype.Text `json:"uid"`
+	LanguageCode string      `json:"language_code"`
 	Name         pgtype.Text `json:"name"`
 	Surname      pgtype.Text `json:"surname"`
 	Middlename   pgtype.Text `json:"middlename"`
@@ -112,10 +186,15 @@ type GetPersonnelPaginatedParams struct {
 	Limit        int32       `json:"limit"`
 }
 
-func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]int64, error) {
+type GetPersonnelPaginatedRow struct {
+	ID       int64  `json:"id"`
+	UniqueID string `json:"unique_id"`
+}
+
+func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]GetPersonnelPaginatedRow, error) {
 	rows, err := q.db.Query(ctx, getPersonnelPaginated,
-		arg.LanguageCode,
 		arg.Uid,
+		arg.LanguageCode,
 		arg.Name,
 		arg.Surname,
 		arg.Middlename,
@@ -127,13 +206,13 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 		return nil, err
 	}
 	defer rows.Close()
-	items := []int64{}
+	items := []GetPersonnelPaginatedRow{}
 	for rows.Next() {
-		var id int64
-		if err := rows.Scan(&id); err != nil {
+		var i GetPersonnelPaginatedRow
+		if err := rows.Scan(&i.ID, &i.UniqueID); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

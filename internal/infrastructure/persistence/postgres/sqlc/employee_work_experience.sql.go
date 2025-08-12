@@ -94,6 +94,7 @@ const getEmployeeWorkExperiencesByEmployeeIDAndLanguageCode = `-- name: GetEmplo
 SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at
 FROM employee_work_experiences
 WHERE employee_id = $1 AND language_code = $2
+ORDER BY employee_work_experiences.date_end DESC
 `
 
 type GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCodeParams struct {

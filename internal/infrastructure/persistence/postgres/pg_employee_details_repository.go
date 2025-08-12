@@ -123,3 +123,25 @@ func (r *pgEmployeeDetailsRepository) GetByEmployeeID(ctx context.Context, emplo
 
 	return employeeDetails, nil
 }
+
+func (r *pgEmployeeDetailsRepository) GetCurrentDetailsByEmployeeIDAndLanguageCode(ctx context.Context, employeeID int64, langCode string) (*domain.EmployeeDetails, error) {
+	employeeDetailsResult, err := r.queries.GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCode(ctx, sqlc.GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCodeParams{
+		EmployeeID:   employeeID,
+		LanguageCode: langCode,
+	})
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("could not retrive current employee details by employeeID(%d) and langaugeCode(%s): %w", employeeID, langCode, err))
+	}
+
+	return &domain.EmployeeDetails{
+		ID:                   employeeDetailsResult.ID,
+		EmployeeID:           employeeDetailsResult.EmployeeID,
+		LanguageCode:         employeeDetailsResult.LanguageCode,
+		Name:                 employeeDetailsResult.Name,
+		Surname:              employeeDetailsResult.Surname,
+		Middlename:           employeeDetailsResult.Middlename.String,
+		IsEmployeeDetailsNew: employeeDetailsResult.IsEmployeeDetailsNew,
+		CreatedAt:            employeeDetailsResult.CreatedAt.Time,
+		UpdatedAt:            employeeDetailsResult.UpdatedAt.Time,
+	}, nil
+}

@@ -39,4 +39,5 @@ WHERE id = $1;
 -- name: GetEmployeeDegreesByEmployeeIDAndLanguageCode :many
 SELECT *
 FROM employee_degrees
-WHERE employee_id = $1 AND language_code = $2;
+WHERE employee_id = $1 AND language_code = $2
+ORDER BY employee_degrees.date_degree_recieved DESC;
