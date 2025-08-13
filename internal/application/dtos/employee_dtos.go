@@ -56,8 +56,7 @@ type PersonnelProfileData struct {
 	HighestAcademicDegree string                   `json:"highestAcademicDegree"`
 	Speciality            string                   `json:"speciality"`
 	CurrentWorkplace      string                   `json:"currentWorkplace"`
-	WorkExperienceYears   int64                    `json:"workExperienceYears"`
-	WorkExperienceMonths  int64                    `json:"workExperienceMonths"`
+	WorkExperience        int64                    `json:"workExperience"`
 	Socials               []EmployeeSocialResponse `json:"socials"`
 }
 

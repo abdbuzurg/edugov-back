@@ -233,14 +233,10 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 
 			return err
 		}
-		fmt.Println("employeeIDsAndUIDS", employeeIDsAndUIDs)
-
 		totalPersonnelByFilter, err := txEmployeeRepo.CountPersonnel(ctx, filter)
 		if err != nil && custom_errors.IsNotFound(err) {
 			return err
 		}
-
-		fmt.Println("count", totalPersonnelByFilter)
 
 		if totalPersonnelByFilter-filter.Page*filter.Limit > 0 {
 			result.NextPage = filter.Page + 1
@@ -298,10 +294,8 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			}
 
 			workExperienceCountYears += workExperienceCountMonths / 12
-			workExperienceCountMonths = workExperienceCountMonths % 12
 
-			currentPersonnel.WorkExperienceYears = int64(workExperienceCountYears)
-			currentPersonnel.WorkExperienceMonths = int64(workExperienceCountMonths)
+			currentPersonnel.WorkExperience = int64(workExperienceCountYears)
 
 			// personnel socials
 			currentEmployeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, employeeIDsAndUIDs[index].ID)
@@ -317,6 +311,7 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 				currentPersonnel.Socials = append(currentPersonnel.Socials, *mappers.MapEmployeeSocialDomainToResponseDTO(social))
 			}
 
+			fmt.Println(currentPersonnel)
 			personnelData[index] = currentPersonnel
 		}
 
