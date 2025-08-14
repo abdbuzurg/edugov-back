@@ -151,6 +151,7 @@ type EmployeeWorkExperience struct {
 	DateEnd      pgtype.Date        `json:"date_end"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	Ongoing      bool               `json:"on_going"`
 }
 
 type Institution struct {

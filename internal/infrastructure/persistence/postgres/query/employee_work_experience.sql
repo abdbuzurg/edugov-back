@@ -6,9 +6,10 @@ INSERT INTO employee_work_experiences(
   job_title,
   description,
   date_start,
-  date_end
+  date_end,
+  on_going
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7
+  $1, $2, $3, $4, $5, $6, $7, $8
 ) RETURNING id, created_at, updated_at;
 
 -- name: UpdateEmployeeWorkExperience :one
@@ -19,8 +20,9 @@ SET
   description = COALESCE($3, description),
   date_start = COALESCE($4, date_start),
   date_end = COALESCE($5, date_end),
+  on_going = COALESCE($6, on_going),
   updated_at = now()
-WHERE id = $6
+WHERE id = $7
 RETURNING id, created_at, updated_at;
 
 -- name: DeleteEmployeeWorkExperience :exec

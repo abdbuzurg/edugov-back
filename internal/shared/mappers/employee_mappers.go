@@ -67,6 +67,7 @@ func MapEmployeeWorkExperienceDomainToResponseDTO(employeeWorkExperience *domain
 		Description: employeeWorkExperience.Description,
 		DateStart:   employeeWorkExperience.DateStart,
 		DateEnd:     employeeWorkExperience.DateEnd,
+		Ongoing:     employeeWorkExperience.Ongoing,
 		CreatedAt:   employeeWorkExperience.CreatedAt,
 		UpdatedAt:   employeeWorkExperience.UpdatedAt,
 	}

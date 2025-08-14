@@ -19,9 +19,10 @@ INSERT INTO employee_work_experiences(
   job_title,
   description,
   date_start,
-  date_end
+  date_end,
+  on_going
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7
+  $1, $2, $3, $4, $5, $6, $7, $8
 ) RETURNING id, created_at, updated_at
 `
 
@@ -33,6 +34,7 @@ type CreateEmployeeWorkExperienceParams struct {
 	Description  string      `json:"description"`
 	DateStart    pgtype.Date `json:"date_start"`
 	DateEnd      pgtype.Date `json:"date_end"`
+	Ongoing      bool        `json:"on_going"`
 }
 
 type CreateEmployeeWorkExperienceRow struct {
@@ -50,6 +52,7 @@ func (q *Queries) CreateEmployeeWorkExperience(ctx context.Context, arg CreateEm
 		arg.Description,
 		arg.DateStart,
 		arg.DateEnd,
+		arg.Ongoing,
 	)
 	var i CreateEmployeeWorkExperienceRow
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
@@ -67,7 +70,7 @@ func (q *Queries) DeleteEmployeeWorkExperience(ctx context.Context, id int64) er
 }
 
 const getEmployeeWorkExperienceByID = `-- name: GetEmployeeWorkExperienceByID :one
-SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at
+SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
 FROM employee_work_experiences
 WHERE id = $1
 `
@@ -86,12 +89,13 @@ func (q *Queries) GetEmployeeWorkExperienceByID(ctx context.Context, id int64) (
 		&i.DateEnd,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Ongoing,
 	)
 	return i, err
 }
 
 const getEmployeeWorkExperiencesByEmployeeIDAndLanguageCode = `-- name: GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCode :many
-SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at
+SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
 FROM employee_work_experiences
 WHERE employee_id = $1 AND language_code = $2
 ORDER BY employee_work_experiences.date_end DESC
@@ -122,6 +126,7 @@ func (q *Queries) GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCode(ctx cont
 			&i.DateEnd,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Ongoing,
 		); err != nil {
 			return nil, err
 		}
@@ -141,8 +146,9 @@ SET
   description = COALESCE($3, description),
   date_start = COALESCE($4, date_start),
   date_end = COALESCE($5, date_end),
+  on_going = COALESCE($6, on_going),
   updated_at = now()
-WHERE id = $6
+WHERE id = $7
 RETURNING id, created_at, updated_at
 `
 
@@ -152,6 +158,7 @@ type UpdateEmployeeWorkExperienceParams struct {
 	Description string      `json:"description"`
 	DateStart   pgtype.Date `json:"date_start"`
 	DateEnd     pgtype.Date `json:"date_end"`
+	Ongoing     bool        `json:"on_going"`
 	ID          int64       `json:"id"`
 }
 
@@ -168,6 +175,7 @@ func (q *Queries) UpdateEmployeeWorkExperience(ctx context.Context, arg UpdateEm
 		arg.Description,
 		arg.DateStart,
 		arg.DateEnd,
+		arg.Ongoing,
 		arg.ID,
 	)
 	var i UpdateEmployeeWorkExperienceRow
