@@ -298,6 +298,9 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			}
 
 			workExperienceCountYears += workExperienceCountMonths / 12
+			if workExperienceCountYears < int(filter.WorkExperience) {
+				continue
+			}
 
 			currentPersonnel.WorkExperience = int64(workExperienceCountYears)
 
