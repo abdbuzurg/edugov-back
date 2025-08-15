@@ -45,6 +45,7 @@ func (uc *employeeWorkExperienceUsecase) Create(ctx context.Context, req *dtos.C
 		Workplace:    req.Workplace,
 		JobTitle:     req.JobTitle,
 		Description:  req.Description,
+		Ongoing:      req.Ongoing,
 		DateStart:    req.DateStart,
 		DateEnd:      req.DateEnd,
 	}
@@ -64,7 +65,8 @@ func (uc *employeeWorkExperienceUsecase) Update(ctx context.Context, req *dtos.U
 	}
 
 	employeeWorkExperience := &domain.EmployeeWorkExperience{
-		ID: req.ID,
+		ID:      req.ID,
+		Ongoing: req.Ongoing,
 	}
 
 	if req.Workplace != nil {

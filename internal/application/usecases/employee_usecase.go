@@ -11,6 +11,7 @@ import (
 	"backend/internal/shared/utils"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -288,6 +289,9 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			workExperienceCountYears := 0
 			workExperienceCountMonths := 0
 			for _, workExperience := range currentEmployeeWorkExperiences {
+				if workExperience.Ongoing {
+					workExperience.DateEnd = time.Now()
+				}
 				yearDiff, monthDiff := utils.DateDifference(workExperience.DateStart, workExperience.DateEnd)
 				workExperienceCountYears += yearDiff
 				workExperienceCountMonths += monthDiff

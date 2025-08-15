@@ -11,7 +11,7 @@ type CreateEmployeeWorkExperienceRequest struct {
 	Description  string    `json:"description" validate:"required"`
 	JobTitle     string    `json:"jobTitle" validate:"required"`
 	DateStart    time.Time `json:"dateStart" validate:"required"`
-	DateEnd      time.Time `json:"dateEnd" validate:"required"`
+	DateEnd      time.Time `json:"dateEnd" validate:"omitempty"`
 	Ongoing      bool      `json:"ongoing"`
 }
 
@@ -28,14 +28,13 @@ type UpdateEmployeeWorkExperienceRequest struct {
 // ---- RESPONSE DTOs ----
 
 type EmployeeWorkExperienceResponse struct {
-	ID            int64     `json:"id"`
-	InstitutionID int64     `json:"institutionID"`
-	Workplace     string    `json:"workplace"`
-	Description   string    `json:"description"`
-	JobTitle      string    `json:"jobTitle"`
-	DateStart     time.Time `json:"dateStart"`
-	DateEnd       time.Time `json:"dateEnd"`
-	Ongoing       bool      `json:"ongoing"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
+	ID          int64     `json:"id"`
+	Workplace   string    `json:"workplace"`
+	Description string    `json:"description"`
+	JobTitle    string    `json:"jobTitle"`
+	DateStart   time.Time `json:"dateStart"`
+	DateEnd     time.Time `json:"dateEnd"`
+	Ongoing     bool      `json:"ongoing"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }

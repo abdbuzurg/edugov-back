@@ -46,7 +46,7 @@ func (r *pgEmployeeWorkExperienceRepository) Create(ctx context.Context, employe
 			Time:  employeeWorkExperience.DateEnd,
 			Valid: !employeeWorkExperience.DateEnd.IsZero(),
 		},
-		Ongoing: employeeWorkExperience.Ongoing,
+		OnGoing: employeeWorkExperience.Ongoing,
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to create employee work experience: %w", err))
@@ -73,7 +73,7 @@ func (r *pgEmployeeWorkExperienceRepository) Update(ctx context.Context, employe
 			Time:  employeeWorkExperience.DateEnd,
 			Valid: !employeeWorkExperience.DateEnd.IsZero(),
 		},
-		Ongoing: employeeWorkExperience.Ongoing,
+		OnGoing: employeeWorkExperience.Ongoing,
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to update employee work experience: %w", err))
@@ -110,7 +110,7 @@ func (r *pgEmployeeWorkExperienceRepository) GetByID(ctx context.Context, id int
 		JobTitle:     employeeWorkExperienceResult.JobTitle,
 		DateStart:    employeeWorkExperienceResult.DateStart.Time,
 		DateEnd:      employeeWorkExperienceResult.DateEnd.Time,
-		Ongoing:      employeeWorkExperienceResult.Ongoing,
+		Ongoing:      employeeWorkExperienceResult.OnGoing,
 		CreatedAt:    employeeWorkExperienceResult.CreatedAt.Time,
 		UpdatedAt:    employeeWorkExperienceResult.UpdatedAt.Time,
 	}, nil
@@ -136,7 +136,7 @@ func (r *pgEmployeeWorkExperienceRepository) GetByEmployeeIDAndLanguageCode(ctx 
 			JobTitle:     workExperience.JobTitle,
 			DateStart:    workExperience.DateStart.Time,
 			DateEnd:      workExperience.DateEnd.Time,
-			Ongoing:      workExperience.Ongoing,
+			Ongoing:      workExperience.OnGoing,
 			CreatedAt:    workExperience.CreatedAt.Time,
 			UpdatedAt:    workExperience.UpdatedAt.Time,
 		}

@@ -38,4 +38,4 @@ WHERE id = $1;
 SELECT *
 FROM employee_work_experiences
 WHERE employee_id = $1 AND language_code = $2
-ORDER BY employee_work_experiences.date_end DESC;
+ORDER BY employee_work_experiences.on_going DESC, employee_work_experiences.date_end DESC;

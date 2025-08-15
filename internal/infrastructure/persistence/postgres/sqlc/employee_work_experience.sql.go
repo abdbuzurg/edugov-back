@@ -34,7 +34,7 @@ type CreateEmployeeWorkExperienceParams struct {
 	Description  string      `json:"description"`
 	DateStart    pgtype.Date `json:"date_start"`
 	DateEnd      pgtype.Date `json:"date_end"`
-	Ongoing      bool        `json:"on_going"`
+	OnGoing      bool        `json:"on_going"`
 }
 
 type CreateEmployeeWorkExperienceRow struct {
@@ -52,7 +52,7 @@ func (q *Queries) CreateEmployeeWorkExperience(ctx context.Context, arg CreateEm
 		arg.Description,
 		arg.DateStart,
 		arg.DateEnd,
-		arg.Ongoing,
+		arg.OnGoing,
 	)
 	var i CreateEmployeeWorkExperienceRow
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
@@ -89,7 +89,7 @@ func (q *Queries) GetEmployeeWorkExperienceByID(ctx context.Context, id int64) (
 		&i.DateEnd,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Ongoing,
+		&i.OnGoing,
 	)
 	return i, err
 }
@@ -98,7 +98,7 @@ const getEmployeeWorkExperiencesByEmployeeIDAndLanguageCode = `-- name: GetEmplo
 SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
 FROM employee_work_experiences
 WHERE employee_id = $1 AND language_code = $2
-ORDER BY employee_work_experiences.date_end DESC
+ORDER BY employee_work_experiences.on_going DESC, employee_work_experiences.date_end DESC
 `
 
 type GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCodeParams struct {
@@ -126,7 +126,7 @@ func (q *Queries) GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCode(ctx cont
 			&i.DateEnd,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Ongoing,
+			&i.OnGoing,
 		); err != nil {
 			return nil, err
 		}
@@ -158,7 +158,7 @@ type UpdateEmployeeWorkExperienceParams struct {
 	Description string      `json:"description"`
 	DateStart   pgtype.Date `json:"date_start"`
 	DateEnd     pgtype.Date `json:"date_end"`
-	Ongoing     bool        `json:"on_going"`
+	OnGoing     bool        `json:"on_going"`
 	ID          int64       `json:"id"`
 }
 
@@ -175,7 +175,7 @@ func (q *Queries) UpdateEmployeeWorkExperience(ctx context.Context, arg UpdateEm
 		arg.Description,
 		arg.DateStart,
 		arg.DateEnd,
-		arg.Ongoing,
+		arg.OnGoing,
 		arg.ID,
 	)
 	var i UpdateEmployeeWorkExperienceRow
