@@ -315,7 +315,6 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 				currentPersonnel.Socials = append(currentPersonnel.Socials, *mappers.MapEmployeeSocialDomainToResponseDTO(social))
 			}
 
-			fmt.Println(currentPersonnel)
 			personnelData[index] = currentPersonnel
 		}
 
