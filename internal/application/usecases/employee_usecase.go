@@ -286,23 +286,17 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			}
 			currentPersonnel.CurrentWorkplace = currentEmployeeWorkExperiences[0].Workplace
 
-			workExperienceCountYears := 0
-			workExperienceCountMonths := 0
-			for _, workExperience := range currentEmployeeWorkExperiences {
-				if workExperience.Ongoing {
-					workExperience.DateEnd = time.Now()
-				}
-				yearDiff, monthDiff := utils.DateDifference(workExperience.DateStart, workExperience.DateEnd)
-				workExperienceCountYears += yearDiff
-				workExperienceCountMonths += monthDiff
-			}
+      var lastDateOfWork time.Time
+      if currentEmployeeWorkExperiences[0].Ongoing {
+        lastDateOfWork = time.Now()
+      } else {
+        lastDateOfWork = currentEmployeeWorkExperiences[0].DateEnd
+      }
 
-			workExperienceCountYears += workExperienceCountMonths / 12
-			if workExperienceCountYears < int(filter.WorkExperience) {
-				continue
-			}
+      firstDateOfWork := currentEmployeeWorkExperiences[len(currentEmployeeWorkExperiences)-1].DateStart
+      yearDiff, monthDiff := utils.DateDifference(firstDateOfWork, lastDateOfWork)
 
-			currentPersonnel.WorkExperience = int64(workExperienceCountYears)
+      currentPersonnel.WorkExperience = int64(yearDiff) + int64(monthDiff / 12)
 
 			// personnel socials
 			currentEmployeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, employeeIDsAndUIDs[index].ID)
