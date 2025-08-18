@@ -4,7 +4,11 @@ import (
 	"backend/internal/application/dtos"
 	"backend/internal/application/repositories"
 	"backend/internal/domain"
+	"backend/internal/infrastructure/http/middleware"
+	"backend/internal/infrastructure/persistence/postgres"
+	"backend/internal/infrastructure/persistence/postgres/sqlc"
 	"backend/internal/shared/custom_errors"
+	"backend/internal/shared/mappers"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
@@ -16,20 +20,24 @@ type InstitutionUsecase interface {
 	Update(ctx context.Context, req *dtos.UpdateInstitutionRequest) (*dtos.InstitutionResponse, error)
 	Delete(ctx context.Context, id int64) error
 	GetByID(ctx context.Context, employeeID int64, langCode string) (*dtos.InstitutionResponse, error)
+	GetAllInstitutions(ctx context.Context) ([]*dtos.AllInstitutionResponse, error)
 }
 
 type institutionUsecase struct {
 	institutionRepo repositories.InstitutionRepository
 	validator       *validator.Validate
+	store           *postgres.Store
 }
 
 func NewInstitutionUsecase(
 	institutionRepo repositories.InstitutionRepository,
 	validator *validator.Validate,
+	store *postgres.Store,
 ) InstitutionUsecase {
 	return &institutionUsecase{
 		institutionRepo: institutionRepo,
 		validator:       validator,
+		store:           store,
 	}
 }
 
@@ -43,19 +51,8 @@ func (uc *institutionUsecase) Create(ctx context.Context, req *dtos.CreateInstit
 		Email:               req.Email,
 		Fax:                 req.Fax,
 		OfficialWebsite:     req.OfficialWebsite,
-		Details: &domain.InstitutionDetails{
-			LanguageCode:     req.Details.LanguageCode,
-			InstitutionTitle: req.Details.InstitutionTitle,
-			InstitutionType:  req.Details.InstitutionType,
-			LegalStatus:      req.Details.LegalAddress,
-			Mission:          req.Details.Mission,
-			Founder:          req.Details.Founder,
-			LegalAddress:     req.Details.LegalAddress,
-		},
-	}
-
-	if req.Details.FactualAddress != nil {
-		institution.Details.FactualAddress = req.Details.FactualAddress
+		PhoneNumber:         req.PhoneNumber,
+		MailIndex:           req.MailIndex,
 	}
 
 	createdInstitution, err := uc.institutionRepo.Create(ctx, institution)
@@ -63,7 +60,7 @@ func (uc *institutionUsecase) Create(ctx context.Context, req *dtos.CreateInstit
 		return nil, err
 	}
 
-	resp := MapInstitutionDomainToResponseDTO(createdInstitution)
+	resp := mappers.MapInstitutionDomainToResponseDTO(createdInstitution)
 	return resp, nil
 }
 
@@ -92,41 +89,12 @@ func (uc *institutionUsecase) Update(ctx context.Context, req *dtos.UpdateInstit
 		institution.OfficialWebsite = *req.OfficialWebsite
 	}
 
-	if req.Details != nil {
-		details := &domain.InstitutionDetails{
-			ID:            req.Details.ID,
-			InstitutionID: req.ID,
-		}
+	if req.PhoneNumber != nil {
+		institution.PhoneNumber = *req.PhoneNumber
+	}
 
-		if req.Details.InstitutionTitle != nil {
-			details.InstitutionTitle = *req.Details.InstitutionTitle
-		}
-
-		if req.Details.InstitutionType != nil {
-			details.InstitutionType = *req.Details.InstitutionType
-
-		}
-		if req.Details.LegalStatus != nil {
-			details.LegalStatus = *req.Details.LegalStatus
-		}
-
-		if req.Details.Mission != nil {
-			details.Mission = *req.Details.Mission
-		}
-
-		if req.Details.Founder != nil {
-			details.Founder = *req.Details.Founder
-		}
-
-		if req.Details.LegalAddress != nil {
-			details.LegalAddress = *req.Details.LegalAddress
-		}
-
-		if req.Details.FactualAddress != nil {
-			details.FactualAddress = req.Details.FactualAddress
-		}
-
-    institution.Details = details
+	if req.PhoneNumber != nil {
+		institution.MailIndex = *req.MailIndex
 	}
 
 	updatedInstitution, err := uc.institutionRepo.Update(ctx, institution)
@@ -134,7 +102,7 @@ func (uc *institutionUsecase) Update(ctx context.Context, req *dtos.UpdateInstit
 		return nil, err
 	}
 
-	resp := MapInstitutionDomainToResponseDTO(updatedInstitution)
+	resp := mappers.MapInstitutionDomainToResponseDTO(updatedInstitution)
 	return resp, nil
 }
 
@@ -156,38 +124,51 @@ func (uc *institutionUsecase) GetByID(ctx context.Context, id int64, langCode st
 		return nil, err
 	}
 
-	resp := MapInstitutionDomainToResponseDTO(institution)
+	resp := mappers.MapInstitutionDomainToResponseDTO(institution)
 	return resp, nil
 }
 
-func MapInstitutionDomainToResponseDTO(institution *domain.Institution) *dtos.InstitutionResponse {
-	if institution == nil {
-		return nil
-	}
+func (uc *institutionUsecase) GetAllInstitutions(ctx context.Context) ([]*dtos.AllInstitutionResponse, error) {
+	var result []*dtos.AllInstitutionResponse
+	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
+		txInstitutionRepo := postgres.NewPgInstitutionRepositoryWithQueries(q)
+		txInstitutionDetailsRepo := postgres.NewPGInstitutionDetailsRepositoryWithQuery(q)
 
-	var details *dtos.InstitutionDetailsResponse
-	if institution.Details != nil {
-		details = &dtos.InstitutionDetailsResponse{
-			ID:               institution.Details.ID,
-			InstitutionTitle: institution.Details.InstitutionTitle,
-			InstitutionType:  institution.Details.InstitutionType,
-			LegalStatus:      institution.Details.LegalAddress,
-			Mission:          institution.Details.Mission,
-			Founder:          institution.Details.Founder,
-			LegalAddress:     institution.Details.LegalAddress,
-			FactualAddress:   institution.Details.FactualAddress,
-			CreatedAt:        institution.Details.CreatedAt,
-			UpdatedAt:        institution.Details.UpdatedAt,
+		institutionsResult, err := txInstitutionRepo.GetAllInstitutions(ctx)
+		if err != nil && !custom_errors.IsNotFound(err) {
+			return err
 		}
+
+		result = make([]*dtos.AllInstitutionResponse, len(institutionsResult))
+
+		langCode := middleware.GetLanguageFromContext(ctx)
+		for index, institution := range institutionsResult {
+			institutionDetails, err := txInstitutionDetailsRepo.GetByInstitutionIDAndLanguageCode(ctx, institution.ID, langCode)
+			if err != nil {
+				if custom_errors.IsNotFound(err) {
+					continue
+				}
+
+				return err
+			}
+
+			result[index] = &dtos.AllInstitutionResponse{
+				InstitutitonTitleShort: institutionDetails.InstitutionTitleShort,
+				InstitutitonTitleLong:  institutionDetails.InstitutionTitleLong,
+				MailIndex:              institution.MailIndex,
+				City:                   institutionDetails.City,
+				Address:                institutionDetails.LegalAddress,
+				OfficialWebsite:        institution.OfficialWebsite,
+				Email:                  institution.Email,
+				PhoneNumber:            institution.PhoneNumber,
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("transaction failed to retrive information about all institutions: %w", err))
 	}
 
-	return &dtos.InstitutionResponse{
-		ID:                  institution.ID,
-		YearOfEstablishment: institution.YearOfEstablishment,
-		Email:               institution.Email,
-		Fax:                 institution.Fax,
-		Details:             details,
-		CreatedAt:           institution.CreatedAt,
-		UpdatedAt:           institution.UpdatedAt,
-	}
+	return result, nil
 }

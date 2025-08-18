@@ -156,12 +156,14 @@ type EmployeeWorkExperience struct {
 
 type Institution struct {
 	ID                  int64              `json:"id"`
-	YearOfEstablishment int32              `json:"year_of_establishment"`
+	YearOfEstablishment pgtype.Int4        `json:"year_of_establishment"`
 	Email               string             `json:"email"`
-	Fax                 string             `json:"fax"`
+	Fax                 pgtype.Text        `json:"fax"`
 	OfficialWebsite     string             `json:"official_website"`
 	CreatedAt           pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	PhoneNumber         pgtype.Text        `json:"phone_number"`
+	MailIndex           pgtype.Text        `json:"mail_index"`
 }
 
 type InstitutionAccreditation struct {
@@ -201,18 +203,20 @@ type InstitutionConference struct {
 }
 
 type InstitutionDetail struct {
-	ID               int64              `json:"id"`
-	InstitutionID    int64              `json:"institution_id"`
-	LanguageCode     string             `json:"language_code"`
-	InstitutionType  string             `json:"institution_type"`
-	InstitutionTitle string             `json:"institution_title"`
-	LegalStatus      string             `json:"legal_status"`
-	Mission          string             `json:"mission"`
-	Founder          string             `json:"founder"`
-	LegalAddress     string             `json:"legal_address"`
-	FactualAddress   pgtype.Text        `json:"factual_address"`
-	CreatedAt        pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ID                    int64              `json:"id"`
+	InstitutionID         int64              `json:"institution_id"`
+	LanguageCode          string             `json:"language_code"`
+	InstitutionType       string             `json:"institution_type"`
+	LegalStatus           pgtype.Text        `json:"legal_status"`
+	Mission               pgtype.Text        `json:"mission"`
+	Founder               pgtype.Text        `json:"founder"`
+	LegalAddress          string             `json:"legal_address"`
+	FactualAddress        pgtype.Text        `json:"factual_address"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+	InstitutionTitleShort string             `json:"institution_title_short"`
+	InstitutionTitleLong  string             `json:"institution_title_long"`
+	City                  pgtype.Text        `json:"city"`
 }
 
 type InstitutionLicence struct {

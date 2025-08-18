@@ -8,6 +8,8 @@ type Institution struct {
 	Email               string
 	Fax                 string
 	OfficialWebsite     string
+	PhoneNumber         string
+	MailIndex           string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 

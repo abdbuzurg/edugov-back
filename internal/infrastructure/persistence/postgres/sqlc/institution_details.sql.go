@@ -16,28 +16,32 @@ INSERT INTO institution_details(
   institution_id,
   language_code,
   institution_type,
-  institution_title,
+  institution_title_short,
+  institution_title_long,
   legal_status,
   mission,
   founder,
   legal_address,
-  factual_address
+  factual_address,
+  city
   )
 VALUES (
- $1, $2, $3, $4, $5, $6, $7, $8, $9
+ $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 ) RETURNING id, created_at, updated_at
 `
 
 type CreateInstitutionDetailsParams struct {
-	InstitutionID    int64       `json:"institution_id"`
-	LanguageCode     string      `json:"language_code"`
-	InstitutionType  string      `json:"institution_type"`
-	InstitutionTitle string      `json:"institution_title"`
-	LegalStatus      string      `json:"legal_status"`
-	Mission          string      `json:"mission"`
-	Founder          string      `json:"founder"`
-	LegalAddress     string      `json:"legal_address"`
-	FactualAddress   pgtype.Text `json:"factual_address"`
+	InstitutionID         int64       `json:"institution_id"`
+	LanguageCode          string      `json:"language_code"`
+	InstitutionType       string      `json:"institution_type"`
+	InstitutionTitleShort string      `json:"institution_title_short"`
+	InstitutionTitleLong  string      `json:"institution_title_long"`
+	LegalStatus           pgtype.Text `json:"legal_status"`
+	Mission               pgtype.Text `json:"mission"`
+	Founder               pgtype.Text `json:"founder"`
+	LegalAddress          string      `json:"legal_address"`
+	FactualAddress        pgtype.Text `json:"factual_address"`
+	City                  pgtype.Text `json:"city"`
 }
 
 type CreateInstitutionDetailsRow struct {
@@ -51,30 +55,32 @@ func (q *Queries) CreateInstitutionDetails(ctx context.Context, arg CreateInstit
 		arg.InstitutionID,
 		arg.LanguageCode,
 		arg.InstitutionType,
-		arg.InstitutionTitle,
+		arg.InstitutionTitleShort,
+		arg.InstitutionTitleLong,
 		arg.LegalStatus,
 		arg.Mission,
 		arg.Founder,
 		arg.LegalAddress,
 		arg.FactualAddress,
+		arg.City,
 	)
 	var i CreateInstitutionDetailsRow
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
 }
 
-const deleteInsitutionDetails = `-- name: DeleteInsitutionDetails :exec
+const deleteInstitutionDetails = `-- name: DeleteInstitutionDetails :exec
 DELETE FROM institution_details 
 WHERE id = $1
 `
 
-func (q *Queries) DeleteInsitutionDetails(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteInsitutionDetails, id)
+func (q *Queries) DeleteInstitutionDetails(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteInstitutionDetails, id)
 	return err
 }
 
 const getInstitutionDetailsByID = `-- name: GetInstitutionDetailsByID :one
-SELECT id, institution_id, language_code, institution_type, institution_title, legal_status, mission, founder, legal_address, factual_address, created_at, updated_at
+SELECT id, institution_id, language_code, institution_type, legal_status, mission, founder, legal_address, factual_address, created_at, updated_at, institution_title_short, institution_title_long, city
 FROM institution_details
 WHERE id = $1
 `
@@ -87,7 +93,6 @@ func (q *Queries) GetInstitutionDetailsByID(ctx context.Context, id int64) (Inst
 		&i.InstitutionID,
 		&i.LanguageCode,
 		&i.InstitutionType,
-		&i.InstitutionTitle,
 		&i.LegalStatus,
 		&i.Mission,
 		&i.Founder,
@@ -95,12 +100,15 @@ func (q *Queries) GetInstitutionDetailsByID(ctx context.Context, id int64) (Inst
 		&i.FactualAddress,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.InstitutionTitleShort,
+		&i.InstitutionTitleLong,
+		&i.City,
 	)
 	return i, err
 }
 
 const getInstitutionDetailsByInstitutionIDAndLanguage = `-- name: GetInstitutionDetailsByInstitutionIDAndLanguage :one
-SELECT id, institution_id, language_code, institution_type, institution_title, legal_status, mission, founder, legal_address, factual_address, created_at, updated_at
+SELECT id, institution_id, language_code, institution_type, legal_status, mission, founder, legal_address, factual_address, created_at, updated_at, institution_title_short, institution_title_long, city
 FROM institution_details
 WHERE institution_id = $1 AND language_code = $2
 `
@@ -118,7 +126,6 @@ func (q *Queries) GetInstitutionDetailsByInstitutionIDAndLanguage(ctx context.Co
 		&i.InstitutionID,
 		&i.LanguageCode,
 		&i.InstitutionType,
-		&i.InstitutionTitle,
 		&i.LegalStatus,
 		&i.Mission,
 		&i.Founder,
@@ -126,6 +133,9 @@ func (q *Queries) GetInstitutionDetailsByInstitutionIDAndLanguage(ctx context.Co
 		&i.FactualAddress,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.InstitutionTitleShort,
+		&i.InstitutionTitleLong,
+		&i.City,
 	)
 	return i, err
 }
@@ -134,26 +144,30 @@ const updateInsitutionDetails = `-- name: UpdateInsitutionDetails :one
 UPDATE institution_details
 SET 
   institution_type = COALESCE($1, institution_type),
-  institution_title = COALESCE($2, institution_title),
-  legal_status = COALESCE($3, legal_status),
-  mission = COALESCE($4, mission),
-  founder = COALESCE($5, founder),
-  legal_address = COALESCE($6, legal_address),
-  factual_address = COALESCE($7, factual_address),
+  institution_title_long = COALESCE($2, institution_title_long),
+  institution_title_short = COALESCE($3, institution_title_short),
+  legal_status = COALESCE($4, legal_status),
+  mission = COALESCE($5, mission),
+  founder = COALESCE($6, founder),
+  legal_address = COALESCE($7, legal_address),
+  factual_address = COALESCE($8, factual_address),
+  city = COALESCE($9, city),
   updated_at = now()
-WHERE id = $8
+WHERE id = $10
 RETURNING id, created_at, updated_at
 `
 
 type UpdateInsitutionDetailsParams struct {
-	InstitutionType  string      `json:"institution_type"`
-	InstitutionTitle string      `json:"institution_title"`
-	LegalStatus      string      `json:"legal_status"`
-	Mission          string      `json:"mission"`
-	Founder          string      `json:"founder"`
-	LegalAddress     string      `json:"legal_address"`
-	FactualAddress   pgtype.Text `json:"factual_address"`
-	ID               int64       `json:"id"`
+	InstitutionType       string      `json:"institution_type"`
+	InstitutionTitleLong  string      `json:"institution_title_long"`
+	InstitutionTitleShort string      `json:"institution_title_short"`
+	LegalStatus           pgtype.Text `json:"legal_status"`
+	Mission               pgtype.Text `json:"mission"`
+	Founder               pgtype.Text `json:"founder"`
+	LegalAddress          string      `json:"legal_address"`
+	FactualAddress        pgtype.Text `json:"factual_address"`
+	City                  pgtype.Text `json:"city"`
+	ID                    int64       `json:"id"`
 }
 
 type UpdateInsitutionDetailsRow struct {
@@ -165,12 +179,14 @@ type UpdateInsitutionDetailsRow struct {
 func (q *Queries) UpdateInsitutionDetails(ctx context.Context, arg UpdateInsitutionDetailsParams) (UpdateInsitutionDetailsRow, error) {
 	row := q.db.QueryRow(ctx, updateInsitutionDetails,
 		arg.InstitutionType,
-		arg.InstitutionTitle,
+		arg.InstitutionTitleLong,
+		arg.InstitutionTitleShort,
 		arg.LegalStatus,
 		arg.Mission,
 		arg.Founder,
 		arg.LegalAddress,
 		arg.FactualAddress,
+		arg.City,
 		arg.ID,
 	)
 	var i UpdateInsitutionDetailsRow

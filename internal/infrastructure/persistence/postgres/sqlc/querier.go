@@ -57,10 +57,10 @@ type Querier interface {
 	DeleteEmployeeSocial(ctx context.Context, id int64) error
 	DeleteEmployeeWorkExperience(ctx context.Context, id int64) error
 	DeleteInsitution(ctx context.Context, id int64) error
-	DeleteInsitutionDetails(ctx context.Context, id int64) error
 	DeleteInstitutionAccreditation(ctx context.Context, id int64) error
 	DeleteInstitutionAchivement(ctx context.Context, id int64) error
 	DeleteInstitutionConference(ctx context.Context, id int64) error
+	DeleteInstitutionDetails(ctx context.Context, id int64) error
 	DeleteInstitutionLicence(ctx context.Context, id int64) error
 	DeleteInstitutionMagazine(ctx context.Context, id int64) error
 	DeleteInstitutionMainResearchDirection(ctx context.Context, id int64) error
@@ -73,6 +73,7 @@ type Querier interface {
 	DeleteInstitutionSocial(ctx context.Context, id int64) error
 	DeleteUserSessionByID(ctx context.Context, id int64) error
 	DeleteUserSessionByUserID(ctx context.Context, userID int64) error
+	GetAllInstitutions(ctx context.Context) ([]Institution, error)
 	GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCode(ctx context.Context, arg GetCurrentEmployeeDetailsByEmployeeIDAndLanguageCodeParams) (EmployeeDetail, error)
 	GetEmployeeByID(ctx context.Context, id int64) (Employee, error)
 	GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID string) (Employee, error)

@@ -62,6 +62,8 @@ func main() {
 	employeeResearchActivityRepo := postgres.NewPgEmployeeResearchActivityRepository(store)
 	employeeMRARepo := postgres.NewPgEmployeeMainResearchAreaRepository(store)
 
+	institutionRepo := postgres.NewPgInstitutionRepository(store)
+
 	// ---- Initilization of Security Components
 	tokenManager := security.NewTokenManager(
 		[]byte(cfg.JWTAccessSecret),
@@ -87,6 +89,7 @@ func main() {
 	employeeResearchActivityUC := usecases.NewEmployeeResearchActivityUsecase(employeeResearchActivityRepo, validator)
 	employeeMRAUC := usecases.NewEmployeeMainResearchAreaUsecase(employeeMRARepo, store, validator)
 
+	institutionUC := usecases.NewInstitutionUsecase(institutionRepo, validator, store)
 	// ---- Initialization of HTTP Handlers ----
 	authHandlers := handlers.NewAuthHandler(authUC, cfg.CookieDomain, cfg.CookieSecure)
 	employeeHandlers := handlers.NewEmployeeHandler(employeeUC)
@@ -103,6 +106,7 @@ func main() {
 	employeeResearchActivityHandler := handlers.NewEmployeeResearchActivityHandler(employeeResearchActivityUC)
 	employeeMRAHandler := handlers.NewEmployeeMainResearchAreaHandler(employeeMRAUC)
 
+	institutionHandler := handlers.NewInstitutionHandler(institutionUC)
 	// --- Initilization of Routes
 	authMiddleware := middleware.CreateAuthMiddleware(tokenManager, utils.RespondWithError)
 	mainMux := http.NewServeMux()
@@ -121,6 +125,7 @@ func main() {
 
 	//Employee Handlers
 	employeeMux := http.NewServeMux()
+
 	employeeMux.HandleFunc("GET /{uid}", employeeHandlers.GetByUID)
 	employeeMux.HandleFunc("PUT /profile-picture/{uid}", employeeHandlers.UpdateProfilePicture)
 	employeeMux.HandleFunc("GET /profile-picture/{uid}", employeeHandlers.GetProfilePicture)
@@ -166,26 +171,33 @@ func main() {
 	employeeMux.HandleFunc("DELETE /social/{id}", authMiddleware(employeeSocialHandler.Delete))
 	// --- employee/refresher-course
 	employeeMux.HandleFunc("GET /refresher-course/{employeeID}", employeeRefresherHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /refresher-course", employeeRefresherHandler.Create)
-	employeeMux.HandleFunc("PUT /refresher-course", employeeRefresherHandler.Update)
-	employeeMux.HandleFunc("DELETE /refresher-course/{id}", employeeRefresherHandler.Delete)
+	employeeMux.HandleFunc("POST /refresher-course", authMiddleware(employeeRefresherHandler.Create))
+	employeeMux.HandleFunc("PUT /refresher-course", authMiddleware(employeeRefresherHandler.Update))
+	employeeMux.HandleFunc("DELETE /refresher-course/{id}", authMiddleware(employeeRefresherHandler.Delete))
 	// --- employee/pie
 	employeeMux.HandleFunc("GET /pie/{employeeID}", employeePIEHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /pie", employeePIEHandler.Create)
-	employeeMux.HandleFunc("PUT /pie", employeePIEHandler.Update)
-	employeeMux.HandleFunc("DELETE /pie/{id}", employeePIEHandler.Delete)
+	employeeMux.HandleFunc("POST /pie", authMiddleware(employeePIEHandler.Create))
+	employeeMux.HandleFunc("PUT /pie", authMiddleware(employeePIEHandler.Update))
+	employeeMux.HandleFunc("DELETE /pie/{id}", authMiddleware(employeePIEHandler.Delete))
 	// --- employee/research-activity
 	employeeMux.HandleFunc("GET /research-activity/{employeeID}", employeeResearchActivityHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /research-activity", employeeResearchActivityHandler.Create)
-	employeeMux.HandleFunc("PUT /research-activity", employeeResearchActivityHandler.Update)
-	employeeMux.HandleFunc("DELETE /research-activity/{id}", employeeResearchActivityHandler.Delete)
+	employeeMux.HandleFunc("POST /research-activity", authMiddleware(employeeResearchActivityHandler.Create))
+	employeeMux.HandleFunc("PUT /research-activity", authMiddleware(employeeResearchActivityHandler.Update))
+	employeeMux.HandleFunc("DELETE /research-activity/{id}", authMiddleware(employeeResearchActivityHandler.Delete))
 	// --- employee/mra
 	employeeMux.HandleFunc("GET /mra/{employeeID}", employeeMRAHandler.GetByEmployeeIDAndLanguageCode)
-	employeeMux.HandleFunc("POST /mra", employeeMRAHandler.Create)
-	employeeMux.HandleFunc("PUT /mra", employeeMRAHandler.Update)
-	employeeMux.HandleFunc("DELETE /mra/{id}", employeeMRAHandler.Delete)
+	employeeMux.HandleFunc("POST /mra", authMiddleware(employeeMRAHandler.Create))
+	employeeMux.HandleFunc("PUT /mra", authMiddleware(employeeMRAHandler.Update))
+	employeeMux.HandleFunc("DELETE /mra/{id}", authMiddleware(employeeMRAHandler.Delete))
 
 	mainMux.Handle("/employee/", http.StripPrefix("/employee", employeeMux))
+
+	//Institution handlers
+	institutionMux := http.NewServeMux()
+
+	institutionMux.HandleFunc("GET /all", institutionHandler.GetAllInstitutions)
+
+	mainMux.Handle("/institution/", http.StripPrefix("/institution", institutionMux))
 
 	// ---- Server initialization ----
 	mainMiddlewareStack := middleware.CreateMiddlewareStack(

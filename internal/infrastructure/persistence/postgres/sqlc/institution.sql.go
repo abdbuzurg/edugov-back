@@ -16,17 +16,21 @@ INSERT INTO institutions (
   year_of_establishment,
   email,
   fax,
-  official_website
+  official_website,
+  phone_number,
+  mail_index
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5, $6
 ) RETURNING id, created_at, updated_at
 `
 
 type CreateInstitutionParams struct {
-	YearOfEstablishment int32  `json:"year_of_establishment"`
-	Email               string `json:"email"`
-	Fax                 string `json:"fax"`
-	OfficialWebsite     string `json:"official_website"`
+	YearOfEstablishment pgtype.Int4 `json:"year_of_establishment"`
+	Email               string      `json:"email"`
+	Fax                 pgtype.Text `json:"fax"`
+	OfficialWebsite     string      `json:"official_website"`
+	PhoneNumber         pgtype.Text `json:"phone_number"`
+	MailIndex           pgtype.Text `json:"mail_index"`
 }
 
 type CreateInstitutionRow struct {
@@ -41,6 +45,8 @@ func (q *Queries) CreateInstitution(ctx context.Context, arg CreateInstitutionPa
 		arg.Email,
 		arg.Fax,
 		arg.OfficialWebsite,
+		arg.PhoneNumber,
+		arg.MailIndex,
 	)
 	var i CreateInstitutionRow
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
@@ -57,8 +63,43 @@ func (q *Queries) DeleteInsitution(ctx context.Context, id int64) error {
 	return err
 }
 
+const getAllInstitutions = `-- name: GetAllInstitutions :many
+SELECT id, year_of_establishment, email, fax, official_website, created_at, updated_at, phone_number, mail_index
+FROM institutions
+`
+
+func (q *Queries) GetAllInstitutions(ctx context.Context) ([]Institution, error) {
+	rows, err := q.db.Query(ctx, getAllInstitutions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Institution{}
+	for rows.Next() {
+		var i Institution
+		if err := rows.Scan(
+			&i.ID,
+			&i.YearOfEstablishment,
+			&i.Email,
+			&i.Fax,
+			&i.OfficialWebsite,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.PhoneNumber,
+			&i.MailIndex,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getInstitutionByID = `-- name: GetInstitutionByID :one
-SELECT id, year_of_establishment, email, fax, official_website, created_at, updated_at
+SELECT id, year_of_establishment, email, fax, official_website, created_at, updated_at, phone_number, mail_index
 FROM institutions
 WHERE 
   id = $1
@@ -75,6 +116,8 @@ func (q *Queries) GetInstitutionByID(ctx context.Context, id int64) (Institution
 		&i.OfficialWebsite,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PhoneNumber,
+		&i.MailIndex,
 	)
 	return i, err
 }
@@ -86,17 +129,21 @@ SET
   email = COALESCE($3, email),
   fax = COALESCE($4, fax),
   official_website = COALESCE($5, official_website),
+  phone_number = COALESCE($6, phone_number),
+  mail_index = COALESCE($7, mail_index),
   updated_at = now()
 WHERE id = $1
 RETURNING id, created_at, updated_at
 `
 
 type UpdateInstitutionParams struct {
-	ID                  int64  `json:"id"`
-	YearOfEstablishment int32  `json:"year_of_establishment"`
-	Email               string `json:"email"`
-	Fax                 string `json:"fax"`
-	OfficialWebsite     string `json:"official_website"`
+	ID                  int64       `json:"id"`
+	YearOfEstablishment pgtype.Int4 `json:"year_of_establishment"`
+	Email               string      `json:"email"`
+	Fax                 pgtype.Text `json:"fax"`
+	OfficialWebsite     string      `json:"official_website"`
+	PhoneNumber         pgtype.Text `json:"phone_number"`
+	MailIndex           pgtype.Text `json:"mail_index"`
 }
 
 type UpdateInstitutionRow struct {
@@ -112,6 +159,8 @@ func (q *Queries) UpdateInstitution(ctx context.Context, arg UpdateInstitutionPa
 		arg.Email,
 		arg.Fax,
 		arg.OfficialWebsite,
+		arg.PhoneNumber,
+		arg.MailIndex,
 	)
 	var i UpdateInstitutionRow
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
