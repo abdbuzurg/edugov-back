@@ -17,16 +17,17 @@ SELECT
 FROM 
 	employees	
 WHERE
-	($1::text IS NULL or employees.unique_id = $1)
+	($1::text IS NULL or employees.unique_id ILIKE '%' || $1 || '%')
 	AND EXISTS (
 		SELECT 1
 		FROM employee_details
 		WHERE 
-			employee_details.language_code = $2
+			employee_details.employee_id = employees.id
+			AND employee_details.language_code = $2
 			and employee_details.is_employee_details_new = True
-		  AND ($3::text IS NULL OR employee_details.name = $3)
-		 	AND ($4::text IS NULL OR employee_details.surname = $4)
-		  AND ($5::text IS NULL OR employee_details.middlename = $5)		
+		  AND ($3::text IS NULL OR employee_details.name ILIKE '%' || $3 || '%')
+		 	AND ($4::text IS NULL OR employee_details.surname ILIKE '%' || $4 || '%')
+		  AND ($5::text IS NULL OR employee_details.middlename ILIKE '%' || $5	|| '%')
 	  )
   	AND EXISTS (
   		SELECT 1
@@ -34,7 +35,7 @@ WHERE
   		WHERE 
   			employee_degrees.employee_id = employees.id
   			and employee_degrees.language_code = $2
-  			and ($6::text IS NULL OR employee_degrees.speciality = $6)
+  			and ($6::text IS NULL OR employee_degrees.speciality ILIKE '%' || $6 || '%')
   	)
   	AND EXISTS (
   		SELECT 1
@@ -142,16 +143,17 @@ SELECT
 FROM 
 	employees	
 WHERE
-	($1::text IS NULL or employees.unique_id = $1)
+	($1::text IS NULL or employees.unique_id ILIKE '%' || $1 || '%')
 	AND EXISTS (
 		SELECT 1
 		FROM employee_details
 		WHERE 
-			employee_details.language_code = $2
-			and employee_details.is_employee_details_new = True
-		  AND ($3::text IS NULL OR employee_details.name = $3)
-		 	AND ($4::text IS NULL OR employee_details.surname = $4)
-		  AND ($5::text IS NULL OR employee_details.middlename = $5)		
+			employee_details.employee_id = employees.id
+			AND employee_details.language_code = $2
+			And employee_details.is_employee_details_new = True
+		  AND ($3::text IS NULL OR employee_details.name ILIKE '%' || $3 || '%')
+		 	AND ($4::text IS NULL OR employee_details.surname ILIKE '%' || $4 || '%')
+		  AND ($5::text IS NULL OR employee_details.middlename ILIKE '%' || $5	|| '%')
 	  )
   	AND EXISTS (
   		SELECT 1
@@ -159,7 +161,7 @@ WHERE
   		WHERE 
   			employee_degrees.employee_id = employees.id
   			and employee_degrees.language_code = $2
-  			and ($6::text IS NULL OR employee_degrees.speciality = $6)
+  			and ($6::text IS NULL OR employee_degrees.speciality ILIKE '%' || $6 || '%')
   	)
   	AND EXISTS (
   		SELECT 1
