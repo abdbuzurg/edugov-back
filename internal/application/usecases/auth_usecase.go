@@ -21,7 +21,7 @@ import (
 )
 
 type AuthUsecase interface {
-	Register(ctx context.Context, req *dtos.AuthRequest) error
+	Register(ctx context.Context, req *dtos.RegisterRequest) error
 	Login(ctx context.Context, req *dtos.AuthRequest) (*dtos.AuthResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*dtos.AuthResponse, error)
 	Logout(ctx context.Context, refreshToken string) error
@@ -74,7 +74,7 @@ func (uc *authUsecase) GetRefreshTokenDuration() time.Duration {
 }
 
 func (uc *authUsecase) generateAndStoreTokens(ctx context.Context, user *domain.User) (*dtos.AuthResponse, error) {
-	accessToken, _, err := uc.tokenManager.GenerateAccessToken(user.ID, user.UserType)
+	accessToken, _, err := uc.tokenManager.GenerateAccessToken(user.ID)
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to generate access token: %w", err))
 	}
@@ -87,6 +87,7 @@ func (uc *authUsecase) generateAndStoreTokens(ctx context.Context, user *domain.
 	var uid string
 	err = uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txUserSessionRepo := postgres.NewPgUserSessionWithQuery(q)
+		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
 
 		if err := txUserSessionRepo.DeleteSessionsByUserID(ctx, user.ID); err != nil {
 			return err
@@ -103,14 +104,12 @@ func (uc *authUsecase) generateAndStoreTokens(ctx context.Context, user *domain.
 			return err
 		}
 
-		if user.UserType == "employee" {
-			employee, err := uc.employeeRepo.GetByID(ctx, user.EntityID)
-			if err != nil {
-				return err
-			}
-
-			uid = employee.UniqueID
+		employee, err := txEmployeeRepo.GetByUserID(ctx, user.ID)
+		if err != nil {
+			return err
 		}
+
+		uid = employee.UniqueID
 
 		return nil
 	})
@@ -123,7 +122,6 @@ func (uc *authUsecase) generateAndStoreTokens(ctx context.Context, user *domain.
 		RefreshToken: refreshToken,
 		TokenType:    "Bearer",
 		UID:          uid,
-		UserRole:     user.UserType,
 	}, nil
 }
 
@@ -164,7 +162,6 @@ func (uc *authUsecase) Me(ctx context.Context) (*dtos.MeResponse, error) {
 
 	result := &dtos.MeResponse{
 		UniqueID: "guest",
-		Type:     "guest",
 	}
 	if !ok {
 		return result, nil
@@ -178,16 +175,13 @@ func (uc *authUsecase) Me(ctx context.Context) (*dtos.MeResponse, error) {
 			return err
 		}
 
-		if user.UserType == "employee" {
-			txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
-			employee, err := txEmployeeRepo.GetByID(ctx, user.EntityID)
-			if err != nil {
-				return err
-			}
-
-			result.UniqueID = employee.UniqueID
-			result.Type = "employee"
+		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
+		employee, err := txEmployeeRepo.GetByUserID(ctx, user.ID)
+		if err != nil {
+			return err
 		}
+
+		result.UniqueID = employee.UniqueID
 
 		return nil
 	})
@@ -198,7 +192,7 @@ func (uc *authUsecase) Me(ctx context.Context) (*dtos.MeResponse, error) {
 	return result, nil
 }
 
-func (uc *authUsecase) Register(ctx context.Context, req *dtos.AuthRequest) error {
+func (uc *authUsecase) Register(ctx context.Context, req *dtos.RegisterRequest) error {
 	if err := uc.validator.Struct(req); err != nil {
 		return custom_errors.BadRequest(fmt.Errorf("invalid registration input: %w", err))
 	}
@@ -207,14 +201,32 @@ func (uc *authUsecase) Register(ctx context.Context, req *dtos.AuthRequest) erro
 		txUserRepo := postgres.NewPgUserRepositoryWithQueries(q)
 		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
 
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return custom_errors.InternalServerError(fmt.Errorf("failed to hash password: %w", err))
+		}
+
+		user, err := txUserRepo.CreateUser(ctx, &domain.User{
+			Email:        req.Email,
+			PasswordHash: string(hashedPassword),
+		})
+		if err != nil && !custom_errors.IsUniqueConstraintError(err) {
+			return err
+		} else if custom_errors.IsUniqueConstraintError(err) {
+			lang := middleware.GetLanguageFromContext(ctx)
+			return custom_errors.BadRequest(fmt.Errorf(clientErrorMessages["registerSameEmail"][lang], req.Email))
+		}
+
 		isUniqueExists := true
 		var uniqueID string
 		var employeeResult *domain.Employee
-		var err error
 		for isUniqueExists {
 			uniqueID, _ = uc.generateNumericUniqueID()
 			employeeResult, err = txEmployeeRepo.Create(ctx, &domain.Employee{
 				UniqueID: uniqueID,
+				UserID:   user.ID,
+				Gender:   req.Gender,
+				Tin:      req.Tin,
 			})
 			if err != nil && !custom_errors.IsUniqueConstraintError(err) {
 				return err
@@ -224,24 +236,6 @@ func (uc *authUsecase) Register(ctx context.Context, req *dtos.AuthRequest) erro
 				isUniqueExists = false
 			}
 
-		}
-
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return custom_errors.InternalServerError(fmt.Errorf("failed to hash password: %w", err))
-		}
-
-		_, err = txUserRepo.CreateUser(ctx, &domain.User{
-			Email:        req.Email,
-			PasswordHash: string(hashedPassword),
-			UserType:     "employee",
-			EntityID:     employeeResult.ID,
-		})
-		if err != nil && !custom_errors.IsUniqueConstraintError(err) {
-			return err
-		} else if custom_errors.IsUniqueConstraintError(err) {
-			lang := middleware.GetLanguageFromContext(ctx)
-			return custom_errors.BadRequest(fmt.Errorf(clientErrorMessages["registerSameEmail"][lang], req.Email))
 		}
 
 		return nil

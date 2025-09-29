@@ -1,11 +1,9 @@
 -- name: CreateUser :one
 INSERT INTO users(
   email,
-  password_hash,
-  user_type,
-  entity_id
+  password_hash
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2
 ) RETURNING id, created_at, updated_at;
 
 -- name: GetUserByEmail :one

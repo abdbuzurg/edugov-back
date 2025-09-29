@@ -1,0 +1,3 @@
+ALTER TABLE employees 
+  ADD COLUMN gender VARCHAR(10) DEFAULT 'male',
+  ADD COLUMN tin VARCHAR(10);

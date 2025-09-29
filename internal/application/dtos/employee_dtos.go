@@ -30,11 +30,11 @@ type PersonnelPaginatedQueryParameters struct {
 // ---- RESPONSE DTOS ----
 
 type EmployeeResponse struct {
-	ID             int64     `json:"id"`
-	UniqueID       string    `json:"uniqueID"`
-	ProfilePicture string    `json:"profilePicture"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
+	ID        int64     `json:"id"`
+	UniqueID  string    `json:"uniqueID"`
+	Gender    string    `json:"gender"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 
 	Details                                []*EmployeeDetailsResponse                              `json:"details,omitempty"`
 	Degrees                                []*EmployeeDegreeResponse                               `json:"degrees,omitempty"`

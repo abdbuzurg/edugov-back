@@ -10,29 +10,27 @@ import (
 )
 
 type pgUserRepository struct {
-	store *Store
-  queries *sqlc.Queries
+	store   *Store
+	queries *sqlc.Queries
 }
 
 func NewPGUserRepository(store *Store) repositories.UserRepository {
 	return &pgUserRepository{
-		store: store,
-    queries: store.Queries,
+		store:   store,
+		queries: store.Queries,
 	}
 }
 
 func NewPgUserRepositoryWithQueries(q *sqlc.Queries) repositories.UserRepository {
-  return &pgUserRepository{
-    queries: q,
-  }
+	return &pgUserRepository{
+		queries: q,
+	}
 }
 
 func (r *pgUserRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 	createdUser, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
 		Email:        user.Email,
 		PasswordHash: user.PasswordHash,
-		UserType:     user.UserType,
-		EntityID:     user.EntityID,
 	})
 	if err != nil {
 
@@ -56,8 +54,6 @@ func (r *pgUserRepository) GetByEmail(ctx context.Context, email string) (*domai
 		ID:           userResult.ID,
 		Email:        userResult.Email,
 		PasswordHash: userResult.PasswordHash,
-		UserType:     userResult.UserType,
-		EntityID:     userResult.EntityID,
 		CreatedAt:    userResult.CreatedAt.Time,
 		UpdatedAt:    userResult.UpdatedAt.Time,
 	}, nil
@@ -73,8 +69,6 @@ func (r *pgUserRepository) GetByID(ctx context.Context, id int64) (*domain.User,
 		ID:           userResult.ID,
 		Email:        userResult.Email,
 		PasswordHash: userResult.PasswordHash,
-		UserType:     userResult.UserType,
-		EntityID:     userResult.EntityID,
 		CreatedAt:    userResult.CreatedAt.Time,
 		UpdatedAt:    userResult.UpdatedAt.Time,
 	}, nil

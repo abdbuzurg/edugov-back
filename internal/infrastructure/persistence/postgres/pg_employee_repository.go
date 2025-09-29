@@ -31,7 +31,21 @@ func NewPgEmployeeRepositoryWithQuery(q *sqlc.Queries) repositories.EmployeeRepo
 }
 
 func (r *pgEmployeeRepository) Create(ctx context.Context, employee *domain.Employee) (*domain.Employee, error) {
-	employeeResult, err := r.queries.CreateEmployee(ctx, employee.UniqueID)
+	employeeResult, err := r.queries.CreateEmployee(ctx, sqlc.CreateEmployeeParams{
+		UniqueID: employee.UniqueID,
+		UserID: pgtype.Int8{
+			Int64: employee.UserID,
+			Valid: true,
+		},
+		Gender: pgtype.Text{
+			String: employee.Gender,
+			Valid:  true,
+		},
+		Tin: pgtype.Text{
+			String: employee.Tin,
+			Valid:  true,
+		},
+	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to create employee: %w", err))
 	}
@@ -61,6 +75,8 @@ func (r *pgEmployeeRepository) GetByID(ctx context.Context, id int64) (*domain.E
 	return &domain.Employee{
 		ID:        employeeResult.ID,
 		UniqueID:  employeeResult.UniqueID,
+		Gender:    employeeResult.Gender.String,
+		Tin:       employeeResult.Tin.String,
 		CreatedAt: employeeResult.CreatedAt.Time,
 		UpdatedAt: employeeResult.UpdatedAt.Time,
 	}, nil
@@ -75,6 +91,27 @@ func (r *pgEmployeeRepository) GetByUniqueID(ctx context.Context, uniqueIdentife
 	return &domain.Employee{
 		ID:        employeeResult.ID,
 		UniqueID:  employeeResult.UniqueID,
+		Gender:    employeeResult.Gender.String,
+		Tin:       employeeResult.Tin.String,
+		CreatedAt: employeeResult.CreatedAt.Time,
+		UpdatedAt: employeeResult.UpdatedAt.Time,
+	}, nil
+}
+
+func (r *pgEmployeeRepository) GetByUserID(ctx context.Context, userID int64) (*domain.Employee, error) {
+	employeeResult, err := r.queries.GetEmployeeByUserID(ctx, pgtype.Int8{
+		Int64: userID,
+		Valid: true,
+	})
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee by given user_id(%d): %w", userID, err))
+	}
+
+	return &domain.Employee{
+		ID:        employeeResult.ID,
+		UniqueID:  employeeResult.UniqueID,
+		Gender:    employeeResult.Gender.String,
+		Tin:       employeeResult.Tin.String,
 		CreatedAt: employeeResult.CreatedAt.Time,
 		UpdatedAt: employeeResult.UpdatedAt.Time,
 	}, nil

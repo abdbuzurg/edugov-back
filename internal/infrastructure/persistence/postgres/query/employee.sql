@@ -1,8 +1,11 @@
 -- name: CreateEmployee :one
 INSERT INTO employees (
-  unique_id
+  unique_id,
+  user_id,
+  gender,
+  tin
 ) VALUES(
-  $1  
+  $1, $2, $3, $4
 ) RETURNING id, created_at, updated_at;
 
 -- name: DeleteEmployee :exec
@@ -18,6 +21,11 @@ WHERE id = $1;
 SELECT *
 FROM employees
 WHERE unique_id = $1;
+
+-- name: GetEmployeeByUserID :one
+SELECT * 
+FROM employees
+WHERE user_id = $1;
 
 -- name: GetPersonnelPaginated :many
 SELECT 

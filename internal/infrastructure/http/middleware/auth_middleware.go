@@ -53,7 +53,6 @@ func CreateAuthMiddleware(
 
 			// 3. Inject UserID and UserRole into the request context.
 			ctx := context.WithValue(r.Context(), UserIDContextKey, claims.UserID)
-			ctx = context.WithValue(ctx, UserRoleContextKey, claims.Role)
 
 			// 4. Call the next handler in the chain with the updated context.
 			next.ServeHTTP(w, r.WithContext(ctx))

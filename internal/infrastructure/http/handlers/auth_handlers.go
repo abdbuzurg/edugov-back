@@ -41,7 +41,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 // Request body - dtos.AuthRequest
 // Response body - none
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req dtos.AuthRequest
+	var req dtos.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, r, fmt.Errorf("invalid request body to register: %w", err))
 		return

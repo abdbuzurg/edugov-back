@@ -1,0 +1,3 @@
+-- UP MIGRATION
+migrate -path internal/infrastructure/persistence/postgres/migrations -database postgresql://postgres:password@localhost:migrate -path internal/infrastructure/persistence/postgres/migrations -database postgresql://postgres:password@localhost:5432/edugov?sslmode=disable up
+

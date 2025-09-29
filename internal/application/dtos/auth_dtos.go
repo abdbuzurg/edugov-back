@@ -1,6 +1,13 @@
 package dtos
 
 // ---- REQUEST DTOs ----
+type RegisterRequest struct {
+	Tin      string `json:"tin" validate:"required"`
+	Gender   string `json:"gender" validate:"required"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
 type AuthRequest struct {
 	Email    string `json:"email" validate:"required"`
 	Password string `json:"password" validate:"required"`
@@ -25,5 +32,4 @@ type AuthResponse struct {
 
 type MeResponse struct {
 	UniqueID string `json:"uniqueID"`
-	Type     string `json:"type"`
 }

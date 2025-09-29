@@ -27,6 +27,8 @@ type EmployeeRepository interface {
 	//GetByUniqueID - retrives a single employee by their uniqueIdentifer.
 	GetByUniqueID(ctx context.Context, uniqueID string) (*domain.Employee, error)
 
+	GetByUserID(ctx context.Context, userID int64) (*domain.Employee, error)
+
 	//GetPersonnelIDsPaginated - retrives employee IDs from db that satisfy the filter parameters in paginated form
 	GetPersonnelIDsPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) ([]*GetPersonnelPaginatedQueryResult, error)
 
