@@ -45,3 +45,8 @@ WHERE id = $1;
 SELECT *
 FROM institution_details
 WHERE institution_id = $1 AND language_code = $2;
+
+-- name: GetInstitutionNamesByLanguageCode :many
+SELECT institution_title_long
+FROM institution_details
+WHERE language_code = $1;

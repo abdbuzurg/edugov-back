@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/internal/application/usecases"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/shared/utils"
 	"net/http"
 )
@@ -25,4 +26,16 @@ func (h *institutionHandler) GetAllInstitutions(w http.ResponseWriter, r *http.R
 	}
 
 	utils.RespondWithJSON(w, r, http.StatusOK, allInstitutions)
+}
+
+// GET /institution/name
+func (h *institutionHandler) GetAllInstitutionName(w http.ResponseWriter, r *http.Request) {
+	langCode := middleware.GetLanguageFromContext(r.Context())
+	institutionNames, err := h.institutionUC.GetAllInstitutionNames(r.Context(), langCode)
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	utils.RespondWithJSON(w, r, http.StatusOK, institutionNames)
 }

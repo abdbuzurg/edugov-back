@@ -140,6 +140,32 @@ func (q *Queries) GetInstitutionDetailsByInstitutionIDAndLanguage(ctx context.Co
 	return i, err
 }
 
+const getInstitutionNamesByLanguageCode = `-- name: GetInstitutionNamesByLanguageCode :many
+SELECT institution_title_long
+FROM institution_details
+WHERE language_code = $1
+`
+
+func (q *Queries) GetInstitutionNamesByLanguageCode(ctx context.Context, languageCode string) ([]string, error) {
+	rows, err := q.db.Query(ctx, getInstitutionNamesByLanguageCode, languageCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var institution_title_long string
+		if err := rows.Scan(&institution_title_long); err != nil {
+			return nil, err
+		}
+		items = append(items, institution_title_long)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateInsitutionDetails = `-- name: UpdateInsitutionDetails :one
 UPDATE institution_details
 SET 

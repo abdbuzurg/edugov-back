@@ -21,6 +21,7 @@ type InstitutionUsecase interface {
 	Delete(ctx context.Context, id int64) error
 	GetByID(ctx context.Context, employeeID int64, langCode string) (*dtos.InstitutionResponse, error)
 	GetAllInstitutions(ctx context.Context) ([]*dtos.AllInstitutionResponse, error)
+	GetAllInstitutionNames(ctx context.Context, langCode string) ([]string, error)
 }
 
 type institutionUsecase struct {
@@ -171,4 +172,13 @@ func (uc *institutionUsecase) GetAllInstitutions(ctx context.Context) ([]*dtos.A
 	}
 
 	return result, nil
+}
+
+func (uc *institutionUsecase) GetAllInstitutionNames(ctx context.Context, langCode string) ([]string, error) {
+	institutionNames, err := uc.store.Queries.GetInstitutionNamesByLanguageCode(ctx, langCode)
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive institution long names by language_code(%s): %w", langCode, err))
+	}
+
+	return institutionNames, nil
 }

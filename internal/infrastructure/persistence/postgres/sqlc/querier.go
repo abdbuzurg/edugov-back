@@ -121,6 +121,7 @@ type Querier interface {
 	GetInstitutionMagazinesByInstitutionIDAndLanguageCode(ctx context.Context, arg GetInstitutionMagazinesByInstitutionIDAndLanguageCodeParams) ([]InstitutionMagazine, error)
 	GetInstitutionMainResearchDirectionByID(ctx context.Context, id int64) (InstitutionMainResearchDirection, error)
 	GetInstitutionMainResearchDirectionsByInstitutionIDAndLanguage(ctx context.Context, arg GetInstitutionMainResearchDirectionsByInstitutionIDAndLanguageParams) ([]InstitutionMainResearchDirection, error)
+	GetInstitutionNamesByLanguageCode(ctx context.Context, languageCode string) ([]string, error)
 	GetInstitutionPartnershipByID(ctx context.Context, id int64) (InstitutionPartnership, error)
 	GetInstitutionPartnershipsByInstitutionIDAndLanguageCode(ctx context.Context, arg GetInstitutionPartnershipsByInstitutionIDAndLanguageCodeParams) ([]InstitutionPartnership, error)
 	GetInstitutionPatentByID(ctx context.Context, id int64) (InstitutionPatent, error)

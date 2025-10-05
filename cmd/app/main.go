@@ -194,8 +194,8 @@ func main() {
 
 	//Institution handlers
 	institutionMux := http.NewServeMux()
-
 	institutionMux.HandleFunc("GET /all", institutionHandler.GetAllInstitutions)
+	institutionMux.HandleFunc("GET /names", institutionHandler.GetAllInstitutionName)
 
 	mainMux.Handle("/institution/", http.StripPrefix("/institution", institutionMux))
 

@@ -139,3 +139,12 @@ func (r *pgInstitutionDetailsRepository) GetByInstitutionIDAndLanguageCode(ctx c
 		UpdatedAt:             institutionResult.UpdatedAt.Time,
 	}, nil
 }
+
+func (r *pgInstitutionDetailsRepository) GetInstitutionNamesByLanguageCode(ctx context.Context, langCode string) ([]string, error) {
+	institutionNames, err := r.queries.GetInstitutionNamesByLanguageCode(ctx, langCode)
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive institution long names by language_code(%s): %w", langCode, err))
+	}
+
+	return institutionNames, nil
+}

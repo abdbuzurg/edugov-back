@@ -41,6 +41,7 @@ type InstitutionResponse struct {
 	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
+// AllInstitutionResponse respresents the data required to show general institution information for /institution in the frontend
 type AllInstitutionResponse struct {
 	InstitutitonTitleShort string `json:"institutionTitleShort"`
 	InstitutitonTitleLong  string `json:"institutionTitleLong"`
