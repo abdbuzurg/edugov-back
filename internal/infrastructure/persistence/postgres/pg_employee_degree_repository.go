@@ -79,7 +79,7 @@ func (r *pgEmployeeDegreeRepository) Update(ctx context.Context, employeeDegree 
 			Valid: !employeeDegree.DateEnd.IsZero(),
 		},
 		GivenBy: pgtype.Text{
-			Valid:  true,
+			Valid:  employeeDegree.GivenBy != "",
 			String: employeeDegree.GivenBy,
 		},
 		DateDegreeRecieved: pgtype.Date{
@@ -135,7 +135,7 @@ func (r *pgEmployeeDegreeRepository) GetByEmployeeIDAndLanguageCode(ctx context.
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive employee degrees with given EmployeeID(%d) and language_code(%s): %w", employeeID, langCode, err))
-	} 
+	}
 
 	employeeDegrees := make([]*domain.EmployeeDegree, len(employeeDegreesResult))
 	for index, degree := range employeeDegreesResult {
@@ -148,7 +148,7 @@ func (r *pgEmployeeDegreeRepository) GetByEmployeeIDAndLanguageCode(ctx context.
 			Speciality:         degree.Speciality,
 			DateStart:          degree.DateStart.Time,
 			DateEnd:            degree.DateEnd.Time,
-			GivenBy:            degree.UniversityName,
+			GivenBy:            degree.GivenBy.String,
 			DateDegreeRecieved: degree.DateDegreeRecieved.Time,
 			CreatedAt:          degree.CreatedAt.Time,
 			UpdatedAt:          degree.UpdatedAt.Time,

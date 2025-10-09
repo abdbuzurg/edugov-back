@@ -139,5 +139,3 @@ func (uc *employeeDegreeUsecase) GetByEmployeeIDAndLanguageCode(ctx context.Cont
 
 	return resp, nil
 }
-
-

@@ -1,5 +1,7 @@
 build
 build.exe
+main
+main.exe
 
 /storage/employee/profile_picture/*
 !/storage/employee/profile_picture/.gitignore
