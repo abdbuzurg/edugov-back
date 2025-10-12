@@ -61,6 +61,6 @@ type PersonnelProfileData struct {
 }
 
 type PersonnelPaginatedResponse struct {
-	Data     []PersonnelProfileData `json:"data"`
-	NextPage int64                  `json:"nextPage,omitempty"`
+	Data  []PersonnelProfileData `json:"data"`
+	Total int64                  `json:"total,omitempty"`
 }

@@ -228,7 +228,7 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 		if err != nil {
 			if custom_errors.IsNotFound(err) {
 				result.Data = []dtos.PersonnelProfileData{}
-				result.NextPage = 0
+				result.Total = 0
 				return nil
 			}
 
@@ -236,14 +236,12 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 		}
 		totalPersonnelByFilter, err := txEmployeeRepo.CountPersonnel(ctx, filter)
 		if err != nil && custom_errors.IsNotFound(err) {
+			result.Data = []dtos.PersonnelProfileData{}
+			result.Total = 0
 			return err
 		}
 
-		if totalPersonnelByFilter-filter.Page*filter.Limit > 0 {
-			result.NextPage = filter.Page + 1
-		} else {
-			result.NextPage = 0
-		}
+		result.Total = totalPersonnelByFilter
 
 		personnelData := make([]dtos.PersonnelProfileData, len(employeeIDsAndUIDs))
 		for index := range personnelData {
