@@ -20,9 +20,9 @@ type Config struct {
 	// Sets port for the server, by default 8080
 	Port string `env:"PORT" env-default:"8080"`
 	// Max duration for reading the entire request (header + body)
-	ReadTimeout int `env:"READ_TIMEOUT" env-default:"5"`
+	ReadTimeout int `env:"READ_TIMEOUT" env-default:"15"`
 	// Max duration before the server times out writing the response
-	WriteTimeout int `env:"WRITE_TIMEOUT" env-default:"10"`
+	WriteTimeout int `env:"WRITE_TIMEOUT" env-default:"15"`
 	//Max time to wait for the next request on a keep-alive connection
 	IdleTimeout int `env:"IDLE_TIMEOUT" env-default:"60"`
 	//Max time to wait for graceful server shutdown
