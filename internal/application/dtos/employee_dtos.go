@@ -59,8 +59,3 @@ type PersonnelProfileData struct {
 	WorkExperience        int64                    `json:"workExperience"`
 	Socials               []EmployeeSocialResponse `json:"socials"`
 }
-
-type PersonnelPaginatedResponse struct {
-	Data  []PersonnelProfileData `json:"data"`
-	Total int64                  `json:"total,omitempty"`
-}

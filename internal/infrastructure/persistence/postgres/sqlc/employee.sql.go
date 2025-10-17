@@ -12,38 +12,26 @@ import (
 )
 
 const countPersonnel = `-- name: CountPersonnel :one
-SELECT 
-	COUNT(*)
-FROM 
-	employees	
+SELECT
+	COUNT(DISTINCT e.id)
+FROM
+	employees AS e
+JOIN
+	employee_details AS ed ON e.id = ed.employee_id
+JOIN
+	employee_degrees AS edeg ON e.id = edeg.employee_id
+JOIN
+	employee_work_experiences AS ewe ON e.id = ewe.employee_id
 WHERE
-	($1::text IS NULL or employees.unique_id ILIKE '%' || $1 || '%')
-	AND EXISTS (
-		SELECT 1
-		FROM employee_details
-		WHERE 
-			employee_details.employee_id = employees.id
-			AND employee_details.language_code = $2
-			and employee_details.is_employee_details_new = True
-		  AND ($3::text IS NULL OR employee_details.name ILIKE '%' || $3 || '%')
-		 	AND ($4::text IS NULL OR employee_details.surname ILIKE '%' || $4 || '%')
-		  AND ($5::text IS NULL OR employee_details.middlename ILIKE '%' || $5	|| '%')
-	  )
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_degrees
-  		WHERE 
-  			employee_degrees.employee_id = employees.id
-  			and employee_degrees.language_code = $2
-  			and ($6::text IS NULL OR employee_degrees.speciality ILIKE '%' || $6 || '%')
-  	)
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_work_experiences
-  		WHERE 
-  			employee_work_experiences.employee_id = employees.id
-  			AND employee_work_experiences.language_code = $2
-  	)
+	($1::text IS NULL OR e.unique_id ILIKE '%' || $1 || '%')
+	AND ed.language_code = $2
+	AND ed.is_employee_details_new = True
+	AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
+	AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
+	AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
+	AND edeg.language_code = $2
+	AND ($6::text IS NULL OR edeg.speciality ILIKE '%' || $6 || '%')
+	AND ewe.language_code = $2
 `
 
 type CountPersonnelParams struct {
@@ -179,42 +167,33 @@ func (q *Queries) GetEmployeeByUserID(ctx context.Context, userID pgtype.Int8) (
 }
 
 const getPersonnelPaginated = `-- name: GetPersonnelPaginated :many
-SELECT 
-	employees.id,
-	employees.unique_id
-FROM 
-	employees	
+SELECT
+	e.id,
+	e.unique_id
+FROM
+	employees AS e
+JOIN
+	employee_details AS ed ON e.id = ed.employee_id
+JOIN
+	employee_degrees AS edeg ON e.id = edeg.employee_id
+JOIN
+	employee_work_experiences AS ewe ON e.id = ewe.employee_id
 WHERE
-	($1::text IS NULL or employees.unique_id ILIKE '%' || $1 || '%')
-	AND EXISTS (
-		SELECT 1
-		FROM employee_details
-		WHERE 
-			employee_details.employee_id = employees.id
-			AND employee_details.language_code = $2
-			And employee_details.is_employee_details_new = True
-		  AND ($3::text IS NULL OR employee_details.name ILIKE '%' || $3 || '%')
-		 	AND ($4::text IS NULL OR employee_details.surname ILIKE '%' || $4 || '%')
-		  AND ($5::text IS NULL OR employee_details.middlename ILIKE '%' || $5	|| '%')
-	  )
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_degrees
-  		WHERE 
-  			employee_degrees.employee_id = employees.id
-  			and employee_degrees.language_code = $2
-  			and ($6::text IS NULL OR employee_degrees.speciality ILIKE '%' || $6 || '%')
-  	)
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_work_experiences
-  		WHERE 
-  			employee_work_experiences.employee_id = employees.id
-  			AND employee_work_experiences.language_code = $2
-  	)
-ORDER BY 
-	employees.id,
-	employees.unique_id
+	($1::text IS NULL OR e.unique_id ILIKE '%' || $1 || '%')
+	AND ed.language_code = $2
+	AND ed.is_employee_details_new = True
+	AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
+	AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
+	AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
+	AND edeg.language_code = $2
+	AND ($6::text IS NULL OR edeg.speciality ILIKE '%' || $6 || '%')
+	AND ewe.language_code = $2
+GROUP BY
+	e.id,
+	e.unique_id
+ORDER BY
+	e.id,
+	e.unique_id
 LIMIT $8
 OFFSET $7
 `

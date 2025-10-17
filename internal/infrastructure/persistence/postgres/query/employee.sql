@@ -28,75 +28,55 @@ FROM employees
 WHERE user_id = $1;
 
 -- name: GetPersonnelPaginated :many
-SELECT 
-	employees.id,
-	employees.unique_id
-FROM 
-	employees	
+SELECT
+	e.id,
+	e.unique_id
+FROM
+	employees AS e
+JOIN
+	employee_details AS ed ON e.id = ed.employee_id
+JOIN
+	employee_degrees AS edeg ON e.id = edeg.employee_id
+JOIN
+	employee_work_experiences AS ewe ON e.id = ewe.employee_id
 WHERE
-	(sqlc.narg(uid)::text IS NULL or employees.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
-	AND EXISTS (
-		SELECT 1
-		FROM employee_details
-		WHERE 
-			employee_details.employee_id = employees.id
-			AND employee_details.language_code = sqlc.arg(language_code)
-			And employee_details.is_employee_details_new = True
-		  AND (sqlc.narg(name)::text IS NULL OR employee_details.name ILIKE '%' || sqlc.narg(name) || '%')
-		 	AND (sqlc.narg(surname)::text IS NULL OR employee_details.surname ILIKE '%' || sqlc.narg(surname) || '%')
-		  AND (sqlc.narg(middlename)::text IS NULL OR employee_details.middlename ILIKE '%' || sqlc.narg(middlename)	|| '%')
-	  )
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_degrees
-  		WHERE 
-  			employee_degrees.employee_id = employees.id
-  			and employee_degrees.language_code = sqlc.arg(language_code)
-  			and (sqlc.narg(speciality)::text IS NULL OR employee_degrees.speciality ILIKE '%' || sqlc.narg(speciality) || '%')
-  	)
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_work_experiences
-  		WHERE 
-  			employee_work_experiences.employee_id = employees.id
-  			AND employee_work_experiences.language_code = sqlc.arg(language_code)
-  	)
-ORDER BY 
-	employees.id,
-	employees.unique_id
+	(sqlc.narg(uid)::text IS NULL OR e.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
+	AND ed.language_code = sqlc.arg(language_code)
+	AND ed.is_employee_details_new = True
+	AND (sqlc.narg(name)::text IS NULL OR ed.name ILIKE '%' || sqlc.narg(name) || '%')
+	AND (sqlc.narg(surname)::text IS NULL OR ed.surname ILIKE '%' || sqlc.narg(surname) || '%')
+	AND (sqlc.narg(middlename)::text IS NULL OR ed.middlename ILIKE '%' || sqlc.narg(middlename) || '%')
+	AND edeg.language_code = sqlc.arg(language_code)
+	AND (sqlc.narg(speciality)::text IS NULL OR edeg.speciality ILIKE '%' || sqlc.narg(speciality) || '%')
+	AND ewe.language_code = sqlc.arg(language_code)
+GROUP BY
+	e.id,
+	e.unique_id
+ORDER BY
+	e.id,
+	e.unique_id
 LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg(page);
 
 -- name: CountPersonnel :one
-SELECT 
-	COUNT(*)
-FROM 
-	employees	
+SELECT
+	COUNT(DISTINCT e.id)
+FROM
+	employees AS e
+JOIN
+	employee_details AS ed ON e.id = ed.employee_id
+JOIN
+	employee_degrees AS edeg ON e.id = edeg.employee_id
+JOIN
+	employee_work_experiences AS ewe ON e.id = ewe.employee_id
 WHERE
-	(sqlc.narg(uid)::text IS NULL or employees.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
-	AND EXISTS (
-		SELECT 1
-		FROM employee_details
-		WHERE 
-			employee_details.employee_id = employees.id
-			AND employee_details.language_code = sqlc.arg(language_code)
-			and employee_details.is_employee_details_new = True
-		  AND (sqlc.narg(name)::text IS NULL OR employee_details.name ILIKE '%' || sqlc.narg(name) || '%')
-		 	AND (sqlc.narg(surname)::text IS NULL OR employee_details.surname ILIKE '%' || sqlc.narg(surname) || '%')
-		  AND (sqlc.narg(middlename)::text IS NULL OR employee_details.middlename ILIKE '%' || sqlc.narg(middlename)	|| '%')
-	  )
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_degrees
-  		WHERE 
-  			employee_degrees.employee_id = employees.id
-  			and employee_degrees.language_code = sqlc.arg(language_code)
-  			and (sqlc.narg(speciality)::text IS NULL OR employee_degrees.speciality ILIKE '%' || sqlc.narg(speciality) || '%')
-  	)
-  	AND EXISTS (
-  		SELECT 1
-  		FROM employee_work_experiences
-  		WHERE 
-  			employee_work_experiences.employee_id = employees.id
-  			AND employee_work_experiences.language_code = sqlc.arg(language_code)
-  	);
+	(sqlc.narg(uid)::text IS NULL OR e.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
+	AND ed.language_code = sqlc.arg(language_code)
+	AND ed.is_employee_details_new = True
+	AND (sqlc.narg(name)::text IS NULL OR ed.name ILIKE '%' || sqlc.narg(name) || '%')
+	AND (sqlc.narg(surname)::text IS NULL OR ed.surname ILIKE '%' || sqlc.narg(surname) || '%')
+	AND (sqlc.narg(middlename)::text IS NULL OR ed.middlename ILIKE '%' || sqlc.narg(middlename) || '%')
+	AND edeg.language_code = sqlc.arg(language_code)
+	AND (sqlc.narg(speciality)::text IS NULL OR edeg.speciality ILIKE '%' || sqlc.narg(speciality) || '%')
+	AND ewe.language_code = sqlc.arg(language_code);
+

@@ -231,5 +231,35 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	fmt.Println(personnel)
+
+	utils.RespondWithJSON(w, r, http.StatusOK, personnel)
+}
+
+func (h *EmployeeHandler) GetPersonnelCountPaginated(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	filter := &dtos.PersonnelPaginatedQueryParameters{
+		UID:                   query.Get("uid"),
+		Name:                  query.Get("name"),
+		Surname:               query.Get("surname"),
+		Middlename:            query.Get("middlename"),
+		HighestAcademicDegree: query.Get("highestAcademicDegree"),
+		Speciality:            query.Get("speciality"),
+		LanguageCode:          middleware.GetLanguageFromContext(r.Context()),
+	}
+
+	workExperience, err := strconv.ParseInt(query.Get("workExperience"), 0, 64)
+	if err != nil {
+		workExperience = 0
+	}
+	filter.WorkExperience = workExperience
+
+	personnel, err := h.employeeUC.GetPersonnelCountPaginated(r.Context(), filter)
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
 	utils.RespondWithJSON(w, r, http.StatusOK, personnel)
 }

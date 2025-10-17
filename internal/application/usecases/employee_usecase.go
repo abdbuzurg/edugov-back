@@ -19,7 +19,8 @@ import (
 type EmployeeUsecase interface {
 	Delete(ctx context.Context, id int64) error
 	GetByUniqueID(ctx context.Context, uniqueID string) (*dtos.EmployeeResponse, error)
-	GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*dtos.PersonnelPaginatedResponse, error)
+	GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*[]dtos.PersonnelProfileData, error)
+	GetPersonnelCountPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*int64, error)
 }
 
 type employeeUsecase struct {
@@ -215,8 +216,8 @@ func (uc *employeeUsecase) GetByUniqueID(ctx context.Context, uniqueID string) (
 	return resp, nil
 }
 
-func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*dtos.PersonnelPaginatedResponse, error) {
-	result := &dtos.PersonnelPaginatedResponse{}
+func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*[]dtos.PersonnelProfileData, error) {
+	var result []dtos.PersonnelProfileData
 	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
 		txEmployeeDetailsRepo := postgres.NewPGEmployeeDetailsRepositoryWithQueries(q)
@@ -227,24 +228,14 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 		employeeIDsAndUIDs, err := txEmployeeRepo.GetPersonnelIDsPaginated(ctx, filter)
 		if err != nil {
 			if custom_errors.IsNotFound(err) {
-				result.Data = []dtos.PersonnelProfileData{}
-				result.Total = 0
+				result = []dtos.PersonnelProfileData{}
 				return nil
 			}
 
 			return err
 		}
-		totalPersonnelByFilter, err := txEmployeeRepo.CountPersonnel(ctx, filter)
-		if err != nil && custom_errors.IsNotFound(err) {
-			result.Data = []dtos.PersonnelProfileData{}
-			result.Total = 0
-			return err
-		}
 
-		result.Total = totalPersonnelByFilter
-
-		personnelData := make([]dtos.PersonnelProfileData, len(employeeIDsAndUIDs))
-		for index := range personnelData {
+		for index := range employeeIDsAndUIDs {
 			//personnel UID
 			currentPersonnel := dtos.PersonnelProfileData{
 				UID: employeeIDsAndUIDs[index].UniqueID,
@@ -313,15 +304,25 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 				currentPersonnel.Socials = append(currentPersonnel.Socials, *mappers.MapEmployeeSocialDomainToResponseDTO(social))
 			}
 
-			personnelData[index] = currentPersonnel
+			result = append(result, currentPersonnel)
 		}
 
-		result.Data = personnelData
 		return nil
 	})
+	fmt.Println(result)
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return &result, nil
+}
+
+func (uc *employeeUsecase) GetPersonnelCountPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*int64, error) {
+	total, err := uc.employeeRepo.CountPersonnel(ctx, filter)
+	if err != nil {
+		total = 0
+		return &total, err
+	}
+
+	return &total, nil
 }

@@ -53,11 +53,11 @@ func NewPostgresDB(ctx context.Context, globalConfig *config.Config) (*pgxpool.P
 	//setting up the config for connection pool
 	// config.MaxConns = int32(globalConfig.DBMaxOpenConns)
 	// config.MaxConnIdleTime = time.Duration(globalConfig.DBConnMaxLifetime)
-
+	//
 	// loggerAdapter := &pgxLogger{
 	// 	logger: log.New(os.Stdout, "PGX_DEBUG: ", log.LstdFlags),
 	// }
-
+	//
 	// tracer := &tracelog.TraceLog{
 	// 	Logger:   loggerAdapter,
 	// 	LogLevel: tracelog.LogLevelTrace,
