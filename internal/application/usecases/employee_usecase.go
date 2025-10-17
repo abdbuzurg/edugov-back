@@ -309,7 +309,6 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 
 		return nil
 	})
-	fmt.Println(result)
 	if err != nil {
 		return nil, err
 	}

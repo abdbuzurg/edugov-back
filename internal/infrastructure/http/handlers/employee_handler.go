@@ -231,8 +231,6 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	fmt.Println(personnel)
-
 	utils.RespondWithJSON(w, r, http.StatusOK, personnel)
 }
 
