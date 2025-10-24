@@ -12,45 +12,57 @@ import (
 )
 
 const countPersonnel = `-- name: CountPersonnel :one
-SELECT
-	COUNT(DISTINCT e.id)
-FROM
-	employees AS e
-JOIN
-	employee_details AS ed ON e.id = ed.employee_id
-JOIN
-	employee_degrees AS edeg ON e.id = edeg.employee_id
-JOIN
-	employee_work_experiences AS ewe ON e.id = ewe.employee_id
-WHERE
-	($1::text IS NULL OR e.unique_id ILIKE '%' || $1 || '%')
-	AND ed.language_code = $2
-	AND ed.is_employee_details_new = True
-	AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
-	AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
-	AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
-	AND edeg.language_code = $2
-	AND ($6::text IS NULL OR edeg.speciality ILIKE '%' || $6 || '%')
-	AND ewe.language_code = $2
+SELECT COUNT(*) 
+FROM (
+	SELECT 
+		e.id as employee_id
+	FROM employees AS e
+	JOIN employee_details AS ed ON e.id = ed.employee_id
+	JOIN (
+		SELECT DISTINCT employee_id FROM employee_socials
+	) AS socials ON e.id = socials.employee_id
+	JOIN (
+		SELECT DISTINCT on (employee_id)
+			employee_id,
+			workplace
+		FROM employee_work_experiences
+		WHERE employee_work_experiences.language_code = $1
+		ORDER by employee_work_experiences.employee_id, employee_work_experiences.date_end DESC NULLS FIRST
+	) AS latest_experience ON e.id = latest_experience.employee_id
+	JOIN (
+		SELECT DISTINCT ON (employee_id)
+			employee_id,
+			degree_level,
+			speciality
+		FROM employee_degrees
+		WHERE employee_degrees.language_code = $1
+		ORDER BY employee_id, date_end desc
+	) AS latest_degree ON e.id = latest_degree.employee_id
+	WHERE
+		($2::text IS NULL OR e.unique_id ILIKE '%' || $2 || '%')
+		AND ed.language_code = $1
+		AND ed.is_employee_details_new = true
+		AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
+		AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
+		AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
+) as final_result
 `
 
 type CountPersonnelParams struct {
-	Uid          pgtype.Text `json:"uid"`
 	LanguageCode string      `json:"language_code"`
+	Uid          pgtype.Text `json:"uid"`
 	Name         pgtype.Text `json:"name"`
 	Surname      pgtype.Text `json:"surname"`
 	Middlename   pgtype.Text `json:"middlename"`
-	Speciality   pgtype.Text `json:"speciality"`
 }
 
 func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countPersonnel,
-		arg.Uid,
 		arg.LanguageCode,
+		arg.Uid,
 		arg.Name,
 		arg.Surname,
 		arg.Middlename,
-		arg.Speciality,
 	)
 	var count int64
 	err := row.Scan(&count)
@@ -167,61 +179,77 @@ func (q *Queries) GetEmployeeByUserID(ctx context.Context, userID pgtype.Int8) (
 }
 
 const getPersonnelPaginated = `-- name: GetPersonnelPaginated :many
-SELECT
-	e.id,
-	e.unique_id
-FROM
-	employees AS e
-JOIN
-	employee_details AS ed ON e.id = ed.employee_id
-JOIN
-	employee_degrees AS edeg ON e.id = edeg.employee_id
-JOIN
-	employee_work_experiences AS ewe ON e.id = ewe.employee_id
+SELECT 
+	e.id as employee_id,
+	e.unique_id as unique_id,
+	ed.surname as surname,
+	ed."name" as name,
+	ed.middlename as middlename,
+	latest_experience.workplace as currentWorkplace,
+	latest_degree.degree_level as highestAcademicDegree,
+	latest_degree.speciality as speciality
+FROM employees AS e
+JOIN employee_details AS ed ON e.id = ed.employee_id
+JOIN (
+	SELECT DISTINCT employee_id FROM employee_socials
+) AS socials ON e.id = socials.employee_id
+JOIN (
+	SELECT DISTINCT on (employee_id)
+		employee_id,
+		workplace
+	FROM employee_work_experiences
+	WHERE employee_work_experiences.language_code = $1
+	ORDER BY employee_work_experiences.employee_id, employee_work_experiences.date_end DESC NULLS FIRST
+) AS latest_experience ON e.id = latest_experience.employee_id
+JOIN (
+	SELECT DISTINCT ON (employee_id)
+		employee_id,
+		degree_level,
+		speciality
+	FROM employee_degrees
+	WHERE employee_degrees.language_code = $1
+	ORDER BY employee_id, date_end desc
+) AS latest_degree ON e.id = latest_degree.employee_id
 WHERE
-	($1::text IS NULL OR e.unique_id ILIKE '%' || $1 || '%')
-	AND ed.language_code = $2
-	AND ed.is_employee_details_new = True
+	($2::text IS NULL OR e.unique_id ILIKE '%' || $2 || '%')
+	AND ed.language_code = $1
+	AND ed.is_employee_details_new = true
 	AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
 	AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
 	AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
-	AND edeg.language_code = $2
-	AND ($6::text IS NULL OR edeg.speciality ILIKE '%' || $6 || '%')
-	AND ewe.language_code = $2
-GROUP BY
-	e.id,
-	e.unique_id
-ORDER BY
-	e.id,
-	e.unique_id
-LIMIT $8
-OFFSET $7
+ORDER BY e.id
+LIMIT $7
+OFFSET $6
 `
 
 type GetPersonnelPaginatedParams struct {
-	Uid          pgtype.Text `json:"uid"`
 	LanguageCode string      `json:"language_code"`
+	Uid          pgtype.Text `json:"uid"`
 	Name         pgtype.Text `json:"name"`
 	Surname      pgtype.Text `json:"surname"`
 	Middlename   pgtype.Text `json:"middlename"`
-	Speciality   pgtype.Text `json:"speciality"`
 	Page         int32       `json:"page"`
 	Limit        int32       `json:"limit"`
 }
 
 type GetPersonnelPaginatedRow struct {
-	ID       int64  `json:"id"`
-	UniqueID string `json:"unique_id"`
+	EmployeeID            int64       `json:"employee_id"`
+	UniqueID              string      `json:"unique_id"`
+	Surname               string      `json:"surname"`
+	Name                  string      `json:"name"`
+	Middlename            pgtype.Text `json:"middlename"`
+	Currentworkplace      string      `json:"currentworkplace"`
+	Highestacademicdegree string      `json:"highestacademicdegree"`
+	Speciality            string      `json:"speciality"`
 }
 
 func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]GetPersonnelPaginatedRow, error) {
 	rows, err := q.db.Query(ctx, getPersonnelPaginated,
-		arg.Uid,
 		arg.LanguageCode,
+		arg.Uid,
 		arg.Name,
 		arg.Surname,
 		arg.Middlename,
-		arg.Speciality,
 		arg.Page,
 		arg.Limit,
 	)
@@ -232,7 +260,16 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 	items := []GetPersonnelPaginatedRow{}
 	for rows.Next() {
 		var i GetPersonnelPaginatedRow
-		if err := rows.Scan(&i.ID, &i.UniqueID); err != nil {
+		if err := rows.Scan(
+			&i.EmployeeID,
+			&i.UniqueID,
+			&i.Surname,
+			&i.Name,
+			&i.Middlename,
+			&i.Currentworkplace,
+			&i.Highestacademicdegree,
+			&i.Speciality,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

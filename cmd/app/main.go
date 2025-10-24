@@ -88,6 +88,7 @@ func main() {
 	employeeParticipationInEventUC := usecases.NewEmployeeParticipationInEventUsecase(employeePIERepo, validator)
 	employeeResearchActivityUC := usecases.NewEmployeeResearchActivityUsecase(employeeResearchActivityRepo, validator)
 	employeeMRAUC := usecases.NewEmployeeMainResearchAreaUsecase(employeeMRARepo, store, validator)
+	reportUC := usecases.NewReportUsecase(store, validator)
 
 	institutionUC := usecases.NewInstitutionUsecase(institutionRepo, validator, store)
 	// ---- Initialization of HTTP Handlers ----
@@ -105,6 +106,7 @@ func main() {
 	employeePIEHandler := handlers.NewEmployeeParticipationInEventHandler(employeeParticipationInEventUC)
 	employeeResearchActivityHandler := handlers.NewEmployeeResearchActivityHandler(employeeResearchActivityUC)
 	employeeMRAHandler := handlers.NewEmployeeMainResearchAreaHandler(employeeMRAUC)
+	reportHandler := handlers.NewReportHandler(reportUC)
 
 	institutionHandler := handlers.NewInstitutionHandler(institutionUC)
 	// --- Initilization of Routes
@@ -199,6 +201,12 @@ func main() {
 	institutionMux.HandleFunc("GET /names", institutionHandler.GetAllInstitutionName)
 
 	mainMux.Handle("/institution/", http.StripPrefix("/institution", institutionMux))
+
+	//Report handlers
+	reportMux := http.NewServeMux()
+	reportMux.HandleFunc("GET /summary-data", authMiddleware(reportHandler.SummaryReport))
+
+	mainMux.Handle("/report/", http.StripPrefix("/report", reportMux))
 
 	// ---- Server initialization ----
 	mainMiddlewareStack := middleware.CreateMiddlewareStack(

@@ -28,55 +28,80 @@ FROM employees
 WHERE user_id = $1;
 
 -- name: GetPersonnelPaginated :many
-SELECT
-	e.id,
-	e.unique_id
-FROM
-	employees AS e
-JOIN
-	employee_details AS ed ON e.id = ed.employee_id
-JOIN
-	employee_degrees AS edeg ON e.id = edeg.employee_id
-JOIN
-	employee_work_experiences AS ewe ON e.id = ewe.employee_id
+SELECT 
+	e.id as employee_id,
+	e.unique_id as unique_id,
+	ed.surname as surname,
+	ed."name" as name,
+	ed.middlename as middlename,
+	latest_experience.workplace as currentWorkplace,
+	latest_degree.degree_level as highestAcademicDegree,
+	latest_degree.speciality as speciality
+FROM employees AS e
+JOIN employee_details AS ed ON e.id = ed.employee_id
+JOIN (
+	SELECT DISTINCT employee_id FROM employee_socials
+) AS socials ON e.id = socials.employee_id
+JOIN (
+	SELECT DISTINCT on (employee_id)
+		employee_id,
+		workplace
+	FROM employee_work_experiences
+	WHERE employee_work_experiences.language_code = sqlc.arg(language_code)
+	ORDER BY employee_work_experiences.employee_id, employee_work_experiences.date_end DESC NULLS FIRST
+) AS latest_experience ON e.id = latest_experience.employee_id
+JOIN (
+	SELECT DISTINCT ON (employee_id)
+		employee_id,
+		degree_level,
+		speciality
+	FROM employee_degrees
+	WHERE employee_degrees.language_code = sqlc.arg(language_code)
+	ORDER BY employee_id, date_end desc
+) AS latest_degree ON e.id = latest_degree.employee_id
 WHERE
 	(sqlc.narg(uid)::text IS NULL OR e.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
 	AND ed.language_code = sqlc.arg(language_code)
-	AND ed.is_employee_details_new = True
+	AND ed.is_employee_details_new = true
 	AND (sqlc.narg(name)::text IS NULL OR ed.name ILIKE '%' || sqlc.narg(name) || '%')
 	AND (sqlc.narg(surname)::text IS NULL OR ed.surname ILIKE '%' || sqlc.narg(surname) || '%')
 	AND (sqlc.narg(middlename)::text IS NULL OR ed.middlename ILIKE '%' || sqlc.narg(middlename) || '%')
-	AND edeg.language_code = sqlc.arg(language_code)
-	AND (sqlc.narg(speciality)::text IS NULL OR edeg.speciality ILIKE '%' || sqlc.narg(speciality) || '%')
-	AND ewe.language_code = sqlc.arg(language_code)
-GROUP BY
-	e.id,
-	e.unique_id
-ORDER BY
-	e.id,
-	e.unique_id
+ORDER BY e.id
 LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg(page);
 
 -- name: CountPersonnel :one
-SELECT
-	COUNT(DISTINCT e.id)
-FROM
-	employees AS e
-JOIN
-	employee_details AS ed ON e.id = ed.employee_id
-JOIN
-	employee_degrees AS edeg ON e.id = edeg.employee_id
-JOIN
-	employee_work_experiences AS ewe ON e.id = ewe.employee_id
-WHERE
-	(sqlc.narg(uid)::text IS NULL OR e.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
-	AND ed.language_code = sqlc.arg(language_code)
-	AND ed.is_employee_details_new = True
-	AND (sqlc.narg(name)::text IS NULL OR ed.name ILIKE '%' || sqlc.narg(name) || '%')
-	AND (sqlc.narg(surname)::text IS NULL OR ed.surname ILIKE '%' || sqlc.narg(surname) || '%')
-	AND (sqlc.narg(middlename)::text IS NULL OR ed.middlename ILIKE '%' || sqlc.narg(middlename) || '%')
-	AND edeg.language_code = sqlc.arg(language_code)
-	AND (sqlc.narg(speciality)::text IS NULL OR edeg.speciality ILIKE '%' || sqlc.narg(speciality) || '%')
-	AND ewe.language_code = sqlc.arg(language_code);
-
+SELECT COUNT(*) 
+FROM (
+	SELECT 
+		e.id as employee_id
+	FROM employees AS e
+	JOIN employee_details AS ed ON e.id = ed.employee_id
+	JOIN (
+		SELECT DISTINCT employee_id FROM employee_socials
+	) AS socials ON e.id = socials.employee_id
+	JOIN (
+		SELECT DISTINCT on (employee_id)
+			employee_id,
+			workplace
+		FROM employee_work_experiences
+		WHERE employee_work_experiences.language_code = sqlc.arg(language_code)
+		ORDER by employee_work_experiences.employee_id, employee_work_experiences.date_end DESC NULLS FIRST
+	) AS latest_experience ON e.id = latest_experience.employee_id
+	JOIN (
+		SELECT DISTINCT ON (employee_id)
+			employee_id,
+			degree_level,
+			speciality
+		FROM employee_degrees
+		WHERE employee_degrees.language_code = sqlc.arg(language_code)
+		ORDER BY employee_id, date_end desc
+	) AS latest_degree ON e.id = latest_degree.employee_id
+	WHERE
+		(sqlc.narg(uid)::text IS NULL OR e.unique_id ILIKE '%' || sqlc.narg(uid) || '%')
+		AND ed.language_code = sqlc.arg(language_code)
+		AND ed.is_employee_details_new = true
+		AND (sqlc.narg(name)::text IS NULL OR ed.name ILIKE '%' || sqlc.narg(name) || '%')
+		AND (sqlc.narg(surname)::text IS NULL OR ed.surname ILIKE '%' || sqlc.narg(surname) || '%')
+		AND (sqlc.narg(middlename)::text IS NULL OR ed.middlename ILIKE '%' || sqlc.narg(middlename) || '%')
+) as final_result;

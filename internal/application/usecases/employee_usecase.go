@@ -220,12 +220,10 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 	var result []dtos.PersonnelProfileData
 	err := uc.store.ExecTx(ctx, func(q *sqlc.Queries) error {
 		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
-		txEmployeeDetailsRepo := postgres.NewPGEmployeeDetailsRepositoryWithQueries(q)
-		txEmployeeDegreeRepo := postgres.NewPgEmployeeDegreeRepositoryWithQuery(q)
 		txEmployeeWorkExperienceRepo := postgres.NewPgEmployeeWorkExperienceRepositoryWithQuery(q)
 		txEmployeeSocialRepo := postgres.NewPgEmployeeSocialRepositoryWithQueries(q)
 
-		employeeIDsAndUIDs, err := txEmployeeRepo.GetPersonnelIDsPaginated(ctx, filter)
+		personnelInitialInfo, err := txEmployeeRepo.GetPersonnelIDsPaginated(ctx, filter)
 		if err != nil {
 			if custom_errors.IsNotFound(err) {
 				result = []dtos.PersonnelProfileData{}
@@ -235,45 +233,27 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			return err
 		}
 
-		for index := range employeeIDsAndUIDs {
+		for index := range personnelInitialInfo {
 			//personnel UID
 			currentPersonnel := dtos.PersonnelProfileData{
-				UID: employeeIDsAndUIDs[index].UniqueID,
+				Speciality:            personnelInitialInfo[index].Speciality,
+				HighestAcademicDegree: personnelInitialInfo[index].Highestacademicdegree,
+				CurrentWorkplace:      personnelInitialInfo[index].Currentworkplace,
+				UID:                   personnelInitialInfo[index].UniqueID,
 			}
-			// personnel fullname
-			currentEmployeeDetails, err := txEmployeeDetailsRepo.GetCurrentDetailsByEmployeeIDAndLanguageCode(ctx, employeeIDsAndUIDs[index].ID, filter.LanguageCode)
-			if err != nil {
-				if custom_errors.IsNotFound(err) {
-					continue
-				}
-				return err
+			currentPersonnel.Fullname = fmt.Sprintf("%s %s", personnelInitialInfo[index].Surname, personnelInitialInfo[index].Name)
+			if personnelInitialInfo[index].Middlename != "" {
+				currentPersonnel.Fullname += " " + personnelInitialInfo[index].Middlename
 			}
-			currentPersonnel.Fullname = fmt.Sprintf("%s %s", currentEmployeeDetails.Surname, currentEmployeeDetails.Name)
-			if currentEmployeeDetails.Middlename != "" {
-				currentPersonnel.Fullname += " " + currentEmployeeDetails.Middlename
-			}
-
-			//personnel degree (HighestAcademicDegree, Speciality)
-			currentEmployeeDegrees, err := txEmployeeDegreeRepo.GetByEmployeeIDAndLanguageCode(ctx, employeeIDsAndUIDs[index].ID, filter.LanguageCode)
-			if err != nil {
-				if custom_errors.IsNotFound(err) {
-					continue
-				}
-
-				return err
-			}
-			currentPersonnel.HighestAcademicDegree = currentEmployeeDegrees[0].DegreeLevel
-			currentPersonnel.Speciality = currentEmployeeDegrees[0].Speciality
 
 			// personnel work experience (CurrentWorkplace, WorkExperienceYears, WorkExperienceMonths)
-			currentEmployeeWorkExperiences, err := txEmployeeWorkExperienceRepo.GetByEmployeeIDAndLanguageCode(ctx, employeeIDsAndUIDs[index].ID, filter.LanguageCode)
+			currentEmployeeWorkExperiences, err := txEmployeeWorkExperienceRepo.GetByEmployeeIDAndLanguageCode(ctx, personnelInitialInfo[index].EmployeeID, filter.LanguageCode)
 			if err != nil {
 				if custom_errors.IsNotFound(err) {
 					continue
 				}
 				return err
 			}
-			currentPersonnel.CurrentWorkplace = currentEmployeeWorkExperiences[0].Workplace
 
 			var lastDateOfWork time.Time
 			if currentEmployeeWorkExperiences[0].Ongoing {
@@ -291,7 +271,7 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			}
 
 			// personnel socials
-			currentEmployeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, employeeIDsAndUIDs[index].ID)
+			currentEmployeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, personnelInitialInfo[index].EmployeeID)
 			if err != nil && !custom_errors.IsNotFound(err) {
 				return err
 			}

@@ -137,6 +137,7 @@ type Querier interface {
 	GetInstitutionSocialByID(ctx context.Context, id int64) (InstitutionSocial, error)
 	GetInstitutionSocialsByInstitutionID(ctx context.Context, institutionID int64) ([]InstitutionSocial, error)
 	GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]GetPersonnelPaginatedRow, error)
+	GetSummaryData(ctx context.Context, languageCode string) ([]GetSummaryDataRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserSessionByToken(ctx context.Context, refreshToken string) (UserSession, error)

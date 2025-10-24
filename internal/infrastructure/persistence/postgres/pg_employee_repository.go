@@ -136,10 +136,6 @@ func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, fil
 			Valid:  filter.Middlename != "",
 			String: filter.Middlename,
 		},
-		Speciality: pgtype.Text{
-			Valid:  filter.Speciality != "",
-			String: filter.Speciality,
-		},
 		Page:  int32((filter.Page - 1) * filter.Limit),
 		Limit: int32(filter.Limit),
 	})
@@ -150,8 +146,14 @@ func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, fil
 	personnel := make([]*repositories.GetPersonnelPaginatedQueryResult, len(personnelResult))
 	for index := range personnel {
 		personnel[index] = &repositories.GetPersonnelPaginatedQueryResult{
-			ID:       personnelResult[index].ID,
-			UniqueID: personnelResult[index].UniqueID,
+			EmployeeID:            personnelResult[index].EmployeeID,
+			Surname:               personnelResult[index].Surname,
+			Name:                  personnelResult[index].Name,
+			Middlename:            personnelResult[index].Middlename.String,
+			Currentworkplace:      personnelResult[index].Currentworkplace,
+			Highestacademicdegree: personnelResult[index].Highestacademicdegree,
+			Speciality:            personnelResult[index].Speciality,
+			UniqueID:              personnelResult[index].UniqueID,
 		}
 	}
 
@@ -176,10 +178,6 @@ func (r *pgEmployeeRepository) CountPersonnel(ctx context.Context, filter *dtos.
 		Middlename: pgtype.Text{
 			Valid:  filter.Middlename != "",
 			String: filter.Middlename,
-		},
-		Speciality: pgtype.Text{
-			Valid:  filter.Speciality != "",
-			String: filter.Speciality,
 		},
 	})
 	if err != nil {

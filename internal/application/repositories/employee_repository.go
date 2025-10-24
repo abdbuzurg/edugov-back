@@ -7,8 +7,14 @@ import (
 )
 
 type GetPersonnelPaginatedQueryResult struct {
-	ID       int64
-	UniqueID string
+	UniqueID              string `json:"unique_id"`
+	EmployeeID            int64  `json:"employee_id"`
+	Surname               string `json:"surname"`
+	Name                  string `json:"name"`
+	Middlename            string `json:"middlename"`
+	Currentworkplace      string `json:"currentworkplace"`
+	Highestacademicdegree string `json:"highestacademicdegree"`
+	Speciality            string `json:"speciality"`
 }
 
 type EmployeeRepository interface {
