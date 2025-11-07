@@ -3,7 +3,6 @@ package handlers
 import (
 	"backend/internal/application/usecases"
 	"backend/internal/shared/utils"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +22,6 @@ func NewReportHandler(reportUC usecases.ReportUsecase) *ReportHandler {
 // Request body - none
 // Response body - excel file
 func (h *ReportHandler) SummaryReport(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("kek")
 	summaryReportFilePath, summaryReportFileName, err := h.reportUC.GenerateSummaryDataReport(r.Context())
 	if err != nil {
 		utils.RespondWithError(w, r, err)

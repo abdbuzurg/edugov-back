@@ -22,7 +22,7 @@ type CORSConfig struct {
 // for development, allowing common methods and headers from all origins,
 // but it's crucial to narrow down AllowedOrigins in production.
 var DefaultCORSConfig = CORSConfig{
-	AllowedOrigins:   []string{"*"}, // WARNING: Use specific origins in production!
+	AllowedOrigins:   []string{"http://10.154.20.112", "http://farzonagon.tj/tg/personnel", "*"}, // WARNING: Use specific origins in production!
 	AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 	AllowedHeaders:   []string{"Accept", "Content-Type", "Authorization"},
 	ExposedHeaders:   []string{"Link"}, // Example: If you send 'Link' header for pagination
