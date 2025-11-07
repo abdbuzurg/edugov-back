@@ -22,7 +22,7 @@ type CORSConfig struct {
 // for development, allowing common methods and headers from all origins,
 // but it's crucial to narrow down AllowedOrigins in production.
 var DefaultCORSConfig = CORSConfig{
-	AllowedOrigins:   []string{"http://10.154.20.112", "http://farzonagon.tj", "*"}, // WARNING: Use specific origins in production!
+	AllowedOrigins:   []string{"http://10.154.20.112", "http://farzonagon.tj"}, // WARNING: Use specific origins in production!
 	AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 	AllowedHeaders:   []string{"Accept", "Content-Type", "Authorization"},
 	ExposedHeaders:   []string{"Link"}, // Example: If you send 'Link' header for pagination
@@ -47,6 +47,7 @@ func CORSMiddleware(config CORSConfig) func(http.Handler) http.Handler {
 			// Get the 'Origin' header from the incoming request. This header indicates
 			// the origin of the request (scheme, host, and port).
 			origin := r.Header.Get("Origin")
+			reqHdrs := r.Header.Get("Access-Control-Request-Headers")
 
 			// Determine if the request's origin is allowed based on the CORS configuration.
 			isOriginAllowed := false
@@ -92,8 +93,13 @@ func CORSMiddleware(config CORSConfig) func(http.Handler) http.Handler {
 
 			// Set other common CORS headers for both preflight and actual requests.
 			// These tell the browser what methods and headers are allowed for the actual request.
+			if reqHdrs != "" {
+				w.Header().Set("Access-Control-Allow-Headers", reqHdrs)
+			} else {
+				w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
+			}
+
 			w.Header().Set("Access-Control-Allow-Methods", allowedMethods)
-			w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
 
 			// If credentials are allowed, set the 'Access-Control-Allow-Credentials' header.
 			if config.AllowCredentials {
