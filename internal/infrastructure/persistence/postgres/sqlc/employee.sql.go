@@ -199,7 +199,7 @@ JOIN (
 		workplace
 	FROM employee_work_experiences
 	WHERE employee_work_experiences.language_code = $1
-	ORDER BY employee_work_experiences.employee_id, employee_work_experiences.date_end DESC NULLS FIRST
+	ORDER BY employee_work_experiences.employee_id, employee_work_experiences.date_start DESC, employee_work_experiences.on_going DESC
 ) AS latest_experience ON e.id = latest_experience.employee_id
 JOIN (
 	SELECT DISTINCT ON (employee_id)
