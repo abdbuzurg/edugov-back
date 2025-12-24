@@ -120,24 +120,13 @@ func (r *pgEmployeeRepository) GetByUserID(ctx context.Context, userID int64) (*
 func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) ([]*repositories.GetPersonnelPaginatedQueryResult, error) {
 	personnelResult, err := r.queries.GetPersonnelPaginated(ctx, sqlc.GetPersonnelPaginatedParams{
 		LanguageCode: filter.LanguageCode,
-		Uid: pgtype.Text{
-			Valid:  filter.UID != "",
-			String: filter.UID,
-		},
-		Name: pgtype.Text{
-			Valid:  filter.Name != "",
-			String: filter.Name,
-		},
-		Surname: pgtype.Text{
-			Valid:  filter.Surname != "",
-			String: filter.Surname,
-		},
-		Middlename: pgtype.Text{
-			Valid:  filter.Middlename != "",
-			String: filter.Middlename,
-		},
-		Page:  int32((filter.Page - 1) * filter.Limit),
-		Limit: int32(filter.Limit),
+		Uid:          filter.UID,
+		Name:         filter.Name,
+		Surname:      filter.Surname,
+		Middlename:   filter.Middlename,
+		Workplace:    filter.Workplace,
+		Page:         int32((filter.Page - 1) * filter.Limit),
+		Limit:        int32(filter.Limit),
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive paginated personnel data (page - %d, limit - %d): %w", filter.Page, filter.Limit, err))
@@ -146,13 +135,13 @@ func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, fil
 	personnel := make([]*repositories.GetPersonnelPaginatedQueryResult, len(personnelResult))
 	for index := range personnel {
 		personnel[index] = &repositories.GetPersonnelPaginatedQueryResult{
-			EmployeeID:            personnelResult[index].EmployeeID,
+			EmployeeID:            personnelResult[index].ID,
 			Surname:               personnelResult[index].Surname,
 			Name:                  personnelResult[index].Name,
 			Middlename:            personnelResult[index].Middlename.String,
-			Currentworkplace:      personnelResult[index].Currentworkplace,
-			Highestacademicdegree: personnelResult[index].Highestacademicdegree,
-			Speciality:            personnelResult[index].Speciality,
+			Currentworkplace:      personnelResult[index].CurrentWorkplace.String,
+			Highestacademicdegree: personnelResult[index].HighestAcademicDegree.String,
+			Speciality:            personnelResult[index].Speciality.String,
 			UniqueID:              personnelResult[index].UniqueID,
 		}
 	}
@@ -163,22 +152,11 @@ func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, fil
 func (r *pgEmployeeRepository) CountPersonnel(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (int64, error) {
 	count, err := r.queries.CountPersonnel(ctx, sqlc.CountPersonnelParams{
 		LanguageCode: filter.LanguageCode,
-		Uid: pgtype.Text{
-			Valid:  filter.UID != "",
-			String: filter.UID,
-		},
-		Name: pgtype.Text{
-			Valid:  filter.Name != "",
-			String: filter.Name,
-		},
-		Surname: pgtype.Text{
-			Valid:  filter.Surname != "",
-			String: filter.Surname,
-		},
-		Middlename: pgtype.Text{
-			Valid:  filter.Middlename != "",
-			String: filter.Middlename,
-		},
+		Uid:          filter.UID,
+		Name:         filter.Name,
+		Surname:      filter.Surname,
+		Middlename:   filter.Middlename,
+		Workplace:    filter.Workplace,
 	})
 	if err != nil {
 		return 0, custom_errors.InternalServerError(fmt.Errorf("could not count personnel: %w", err))

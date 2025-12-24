@@ -194,22 +194,17 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 // Response body - none
 func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
+	fmt.Println("KEK")
 
 	filter := &dtos.PersonnelPaginatedQueryParameters{
-		UID:                   query.Get("uid"),
-		Name:                  query.Get("name"),
-		Surname:               query.Get("surname"),
-		Middlename:            query.Get("middlename"),
-		HighestAcademicDegree: query.Get("highestAcademicDegree"),
-		Speciality:            query.Get("speciality"),
-		LanguageCode:          middleware.GetLanguageFromContext(r.Context()),
+		UID:          query.Get("uid"),
+		Name:         query.Get("name"),
+		Surname:      query.Get("surname"),
+		Middlename:   query.Get("middlename"),
+		Workplace:    query.Get("workplace"),
+		LanguageCode: middleware.GetLanguageFromContext(r.Context()),
 	}
-
-	workExperience, err := strconv.ParseInt(query.Get("workExperience"), 0, 64)
-	if err != nil {
-		workExperience = 0
-	}
-	filter.WorkExperience = workExperience
+	fmt.Println(filter.Workplace)
 
 	page, err := strconv.ParseInt(query.Get("page"), 0, 64)
 	if err != nil {
@@ -238,20 +233,13 @@ func (h *EmployeeHandler) GetPersonnelCountPaginated(w http.ResponseWriter, r *h
 	query := r.URL.Query()
 
 	filter := &dtos.PersonnelPaginatedQueryParameters{
-		UID:                   query.Get("uid"),
-		Name:                  query.Get("name"),
-		Surname:               query.Get("surname"),
-		Middlename:            query.Get("middlename"),
-		HighestAcademicDegree: query.Get("highestAcademicDegree"),
-		Speciality:            query.Get("speciality"),
-		LanguageCode:          middleware.GetLanguageFromContext(r.Context()),
+		UID:          query.Get("uid"),
+		Name:         query.Get("name"),
+		Surname:      query.Get("surname"),
+		Middlename:   query.Get("middlename"),
+		Workplace:    query.Get("workplace"),
+		LanguageCode: middleware.GetLanguageFromContext(r.Context()),
 	}
-
-	workExperience, err := strconv.ParseInt(query.Get("workExperience"), 0, 64)
-	if err != nil {
-		workExperience = 0
-	}
-	filter.WorkExperience = workExperience
 
 	personnel, err := h.employeeUC.GetPersonnelCountPaginated(r.Context(), filter)
 	if err != nil {

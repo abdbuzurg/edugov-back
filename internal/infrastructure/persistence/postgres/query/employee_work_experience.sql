@@ -26,16 +26,20 @@ WHERE id = $7
 RETURNING id, created_at, updated_at;
 
 -- name: DeleteEmployeeWorkExperience :exec
-DELETE FROM employee_work_experiences
-WHERE id = $1;
+delete from employee_work_experiences
+where id = $1
+;
 
 -- name: GetEmployeeWorkExperienceByID :one
-SELECT *
-FROM employee_work_experiences
-WHERE id = $1;
+select *
+from employee_work_experiences
+where id = $1
+;
 
 -- name: GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCode :many
-SELECT *
-FROM employee_work_experiences
-WHERE employee_id = $1 AND language_code = $2
-ORDER BY employee_work_experiences.on_going DESC, employee_work_experiences.date_end DESC;
+select *
+from employee_work_experiences
+where employee_id = $1 and language_code = $2
+order by
+    employee_work_experiences.on_going desc, employee_work_experiences.date_end desc
+;

@@ -222,6 +222,7 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
 		txEmployeeWorkExperienceRepo := postgres.NewPgEmployeeWorkExperienceRepositoryWithQuery(q)
 		txEmployeeSocialRepo := postgres.NewPgEmployeeSocialRepositoryWithQueries(q)
+		fmt.Println(filter)
 
 		personnelInitialInfo, err := txEmployeeRepo.GetPersonnelIDsPaginated(ctx, filter)
 		if err != nil {
@@ -266,9 +267,6 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 			yearDiff, monthDiff := utils.DateDifference(firstDateOfWork, lastDateOfWork)
 
 			currentPersonnel.WorkExperience = int64(yearDiff) + int64(monthDiff/12)
-			if currentPersonnel.WorkExperience < filter.WorkExperience {
-				continue
-			}
 
 			// personnel socials
 			currentEmployeeSocials, err := txEmployeeSocialRepo.GetByEmployeeID(ctx, personnelInitialInfo[index].EmployeeID)

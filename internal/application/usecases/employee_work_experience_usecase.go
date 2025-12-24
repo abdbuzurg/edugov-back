@@ -4,6 +4,7 @@ import (
 	"backend/internal/application/dtos"
 	"backend/internal/application/repositories"
 	"backend/internal/domain"
+	"backend/internal/infrastructure/http/middleware"
 	"backend/internal/shared/custom_errors"
 	"backend/internal/shared/mappers"
 	"fmt"
@@ -17,6 +18,7 @@ type EmployeeWorkExperienceUsecase interface {
 	Update(ctx context.Context, req *dtos.UpdateEmployeeWorkExperienceRequest) (*dtos.EmployeeWorkExperienceResponse, error)
 	Delete(ctx context.Context, id int64) error
 	GetByEmployeeIDAndLanguageCode(ctx context.Context, employeeID int64, langCode string) ([]*dtos.EmployeeWorkExperienceResponse, error)
+	ListUniqueOngoingWorkplaces(ctx context.Context) ([]string, error)
 }
 
 type employeeWorkExperienceUsecase struct {
@@ -126,4 +128,9 @@ func (uc *employeeWorkExperienceUsecase) GetByEmployeeIDAndLanguageCode(ctx cont
 	}
 
 	return resp, nil
+}
+
+func (uc *employeeWorkExperienceUsecase) ListUniqueOngoingWorkplaces(ctx context.Context) ([]string, error) {
+	langCode := middleware.GetLanguageFromContext(ctx)
+	return uc.employeeWorkExperienceRepo.ListUniqueOngoingWorkplaces(ctx, langCode)
 }

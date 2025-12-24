@@ -62,7 +62,7 @@ func NewPostgresDB(ctx context.Context, globalConfig *config.Config) (*pgxpool.P
 	// 	Logger:   loggerAdapter,
 	// 	LogLevel: tracelog.LogLevelTrace,
 	// }
-	// // Assign the tracer to the connection config.
+	// Assign the tracer to the connection config.
 	// config.ConnConfig.Tracer = tracer
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)

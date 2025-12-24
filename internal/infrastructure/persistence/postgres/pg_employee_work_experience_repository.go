@@ -144,3 +144,19 @@ func (r *pgEmployeeWorkExperienceRepository) GetByEmployeeIDAndLanguageCode(ctx 
 
 	return employeeWorkExperiences, nil
 }
+
+func (r *pgEmployeeWorkExperienceRepository) ListUniqueOngoingWorkplaces(ctx context.Context, langCode string) ([]string, error) {
+	workplaces, err := r.queries.ListUniqueWorkplaces(ctx, langCode)
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive unique workplaces: %w", err))
+	}
+
+	result := []string{}
+	for index := range workplaces {
+		if workplaces[index].Valid {
+			result = append(result, workplaces[index].String)
+		}
+	}
+
+	return result, nil
+}

@@ -13,12 +13,12 @@ import (
 )
 
 type EmployeeWorkExperienceHandler struct {
-	employeeDegreeUC usecases.EmployeeWorkExperienceUsecase
+	employeeWorkExperienceUC usecases.EmployeeWorkExperienceUsecase
 }
 
-func NewEmployeeWorkExperienceHandler(employeeDegreeUC usecases.EmployeeWorkExperienceUsecase) *EmployeeWorkExperienceHandler {
+func NewEmployeeWorkExperienceHandler(employeeWorkExperienceUC usecases.EmployeeWorkExperienceUsecase) *EmployeeWorkExperienceHandler {
 	return &EmployeeWorkExperienceHandler{
-		employeeDegreeUC: employeeDegreeUC,
+		employeeWorkExperienceUC: employeeWorkExperienceUC,
 	}
 }
 
@@ -35,7 +35,7 @@ func (h *EmployeeWorkExperienceHandler) Create(w http.ResponseWriter, r *http.Re
 
 	lang := middleware.GetLanguageFromContext(r.Context())
 	req.LanguageCode = lang
-	resp, err := h.employeeDegreeUC.Create(r.Context(), &req)
+	resp, err := h.employeeWorkExperienceUC.Create(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
@@ -55,7 +55,7 @@ func (h *EmployeeWorkExperienceHandler) Update(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	resp, err := h.employeeDegreeUC.Update(r.Context(), &req)
+	resp, err := h.employeeWorkExperienceUC.Update(r.Context(), &req)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
@@ -75,7 +75,7 @@ func (h *EmployeeWorkExperienceHandler) Delete(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := h.employeeDegreeUC.Delete(r.Context(), int64(id)); err != nil {
+	if err := h.employeeWorkExperienceUC.Delete(r.Context(), int64(id)); err != nil {
 		utils.RespondWithError(w, r, err)
 		return
 	}
@@ -83,7 +83,7 @@ func (h *EmployeeWorkExperienceHandler) Delete(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /employee-professional-activity-in-education/employee-{employeeID}/
+// GET /work-experience/employee-{employeeID}/
 // Request body - none
 // Response body - []dtos.EmployeeWorkExperienceResponse
 func (h *EmployeeWorkExperienceHandler) GetByEmployeeIDAndLanguageCode(w http.ResponseWriter, r *http.Request) {
@@ -95,11 +95,22 @@ func (h *EmployeeWorkExperienceHandler) GetByEmployeeIDAndLanguageCode(w http.Re
 	}
 
 	langCode := middleware.GetLanguageFromContext(r.Context())
-	resp, err := h.employeeDegreeUC.GetByEmployeeIDAndLanguageCode(r.Context(), int64(employeeID), langCode)
+	resp, err := h.employeeWorkExperienceUC.GetByEmployeeIDAndLanguageCode(r.Context(), int64(employeeID), langCode)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
 		return
 	}
 
 	utils.RespondWithJSON(w, r, http.StatusOK, resp)
+}
+
+func (h *EmployeeWorkExperienceHandler) ListUniqueOngoingWorkplaces(w http.ResponseWriter, r *http.Request) {
+	workplaces, err := h.employeeWorkExperienceUC.ListUniqueOngoingWorkplaces(r.Context())
+	if err != nil {
+		err = custom_errors.BadRequest(fmt.Errorf("invalid request path parameter to retrive employee work experience by employeeID: %w", err))
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	utils.RespondWithJSON(w, r, http.StatusOK, workplaces)
 }

@@ -133,6 +133,7 @@ func main() {
 	employeeMux.HandleFunc("GET /profile-picture/{uid}", employeeHandlers.GetProfilePicture)
 	employeeMux.HandleFunc("GET /personnel", employeeHandlers.GetPersonnelPaginated)
 	employeeMux.HandleFunc("GET /personnel/count", employeeHandlers.GetPersonnelCountPaginated)
+	employeeMux.HandleFunc("GET /personnel/list-workplaces", employeeWorkExperienceHandler.ListUniqueOngoingWorkplaces)
 
 	// ---- employee/detials
 	employeeMux.HandleFunc("PUT /details", authMiddleware(employeeDetailsHandler.Update))

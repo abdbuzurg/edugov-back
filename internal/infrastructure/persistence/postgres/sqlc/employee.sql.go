@@ -12,48 +12,44 @@ import (
 )
 
 const countPersonnel = `-- name: CountPersonnel :one
-SELECT COUNT(*) 
-FROM (
-	SELECT 
-		e.id as employee_id
-	FROM employees AS e
-	JOIN employee_details AS ed ON e.id = ed.employee_id
-	JOIN (
-		SELECT DISTINCT employee_id FROM employee_socials
-	) AS socials ON e.id = socials.employee_id
-	JOIN (
-		SELECT DISTINCT on (employee_id)
-			employee_id,
-			workplace
-		FROM employee_work_experiences
-		WHERE employee_work_experiences.language_code = $1
-		ORDER by employee_work_experiences.employee_id, employee_work_experiences.date_end DESC NULLS FIRST
-	) AS latest_experience ON e.id = latest_experience.employee_id
-	JOIN (
-		SELECT DISTINCT ON (employee_id)
-			employee_id,
-			degree_level,
-			speciality
-		FROM employee_degrees
-		WHERE employee_degrees.language_code = $1
-		ORDER BY employee_id, date_end desc
-	) AS latest_degree ON e.id = latest_degree.employee_id
-	WHERE
-		($2::text IS NULL OR e.unique_id ILIKE '%' || $2 || '%')
-		AND ed.language_code = $1
-		AND ed.is_employee_details_new = true
-		AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
-		AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
-		AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
-) as final_result
+select count(*)::bigint as total
+from employees e
+join
+    employee_details ed
+    on ed.employee_id = e.id
+    and ed.is_employee_details_new is true
+    and ed.language_code = $1
+where
+    exists (select 1 from employee_socials es where es.employee_id = e.id)
+    and e.highest_academic_degree is not null
+    and e.speciality is not null
+    and e.current_workplace is not null
+    and (nullif($2::text, '') is null or e.unique_id = $2)
+    and (
+        nullif($3::text, '') is null
+        or ed.name ilike '%' || $3 || '%'
+    )
+    and (
+        nullif($4::text, '') is null
+        or ed.surname ilike '%' || $4 || '%'
+    )
+    and (
+        nullif($5::text, '') is null
+        or ed.middlename ilike '%' || $5 || '%'
+    )
+    and (
+        nullif($6::text, '') is null
+        or e.current_workplace = $6
+    )
 `
 
 type CountPersonnelParams struct {
-	LanguageCode string      `json:"language_code"`
-	Uid          pgtype.Text `json:"uid"`
-	Name         pgtype.Text `json:"name"`
-	Surname      pgtype.Text `json:"surname"`
-	Middlename   pgtype.Text `json:"middlename"`
+	LanguageCode string `json:"language_code"`
+	Uid          string `json:"uid"`
+	Name         string `json:"name"`
+	Surname      string `json:"surname"`
+	Middlename   string `json:"middlename"`
+	Workplace    string `json:"workplace"`
 }
 
 func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) (int64, error) {
@@ -63,10 +59,11 @@ func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) 
 		arg.Name,
 		arg.Surname,
 		arg.Middlename,
+		arg.Workplace,
 	)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+	var total int64
+	err := row.Scan(&total)
+	return total, err
 }
 
 const createEmployee = `-- name: CreateEmployee :one
@@ -106,8 +103,8 @@ func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) 
 }
 
 const deleteEmployee = `-- name: DeleteEmployee :exec
-DELETE FROM employees 
-WHERE id = $1
+delete from employees
+where id = $1
 `
 
 func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
@@ -116,9 +113,9 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
 }
 
 const getEmployeeByID = `-- name: GetEmployeeByID :one
-SELECT id, unique_id, created_at, updated_at, user_id, gender, tin
-FROM employees
-WHERE id = $1
+select id, unique_id, created_at, updated_at, user_id, gender, tin, highest_academic_degree, speciality, current_workplace
+from employees
+where id = $1
 `
 
 func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (Employee, error) {
@@ -132,14 +129,17 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (Employee, erro
 		&i.UserID,
 		&i.Gender,
 		&i.Tin,
+		&i.HighestAcademicDegree,
+		&i.Speciality,
+		&i.CurrentWorkplace,
 	)
 	return i, err
 }
 
 const getEmployeeByUniqueIdentifier = `-- name: GetEmployeeByUniqueIdentifier :one
-SELECT id, unique_id, created_at, updated_at, user_id, gender, tin
-FROM employees
-WHERE unique_id = $1
+select id, unique_id, created_at, updated_at, user_id, gender, tin, highest_academic_degree, speciality, current_workplace
+from employees
+where unique_id = $1
 `
 
 func (q *Queries) GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID string) (Employee, error) {
@@ -153,14 +153,17 @@ func (q *Queries) GetEmployeeByUniqueIdentifier(ctx context.Context, uniqueID st
 		&i.UserID,
 		&i.Gender,
 		&i.Tin,
+		&i.HighestAcademicDegree,
+		&i.Speciality,
+		&i.CurrentWorkplace,
 	)
 	return i, err
 }
 
 const getEmployeeByUserID = `-- name: GetEmployeeByUserID :one
-SELECT id, unique_id, created_at, updated_at, user_id, gender, tin 
-FROM employees
-WHERE user_id = $1
+select id, unique_id, created_at, updated_at, user_id, gender, tin, highest_academic_degree, speciality, current_workplace
+from employees
+where user_id = $1
 `
 
 func (q *Queries) GetEmployeeByUserID(ctx context.Context, userID pgtype.Int8) (Employee, error) {
@@ -174,73 +177,84 @@ func (q *Queries) GetEmployeeByUserID(ctx context.Context, userID pgtype.Int8) (
 		&i.UserID,
 		&i.Gender,
 		&i.Tin,
+		&i.HighestAcademicDegree,
+		&i.Speciality,
+		&i.CurrentWorkplace,
 	)
 	return i, err
 }
 
 const getPersonnelPaginated = `-- name: GetPersonnelPaginated :many
-SELECT 
-	e.id as employee_id,
-	e.unique_id as unique_id,
-	ed.surname as surname,
-	ed."name" as name,
-	ed.middlename as middlename,
-	latest_experience.workplace as currentWorkplace,
-	latest_degree.degree_level as highestAcademicDegree,
-	latest_degree.speciality as speciality
-FROM employees AS e
-JOIN employee_details AS ed ON e.id = ed.employee_id
-JOIN (
-	SELECT DISTINCT employee_id FROM employee_socials
-) AS socials ON e.id = socials.employee_id
-JOIN (
-	SELECT DISTINCT on (employee_id)
-		employee_id,
-		workplace
-	FROM employee_work_experiences
-	WHERE employee_work_experiences.language_code = $1
-	ORDER BY employee_work_experiences.employee_id, employee_work_experiences.date_start DESC, employee_work_experiences.on_going DESC
-) AS latest_experience ON e.id = latest_experience.employee_id
-JOIN (
-	SELECT DISTINCT ON (employee_id)
-		employee_id,
-		degree_level,
-		speciality
-	FROM employee_degrees
-	WHERE employee_degrees.language_code = $1
-	ORDER BY employee_id, date_end desc
-) AS latest_degree ON e.id = latest_degree.employee_id
-WHERE
-	($2::text IS NULL OR e.unique_id ILIKE '%' || $2 || '%')
-	AND ed.language_code = $1
-	AND ed.is_employee_details_new = true
-	AND ($3::text IS NULL OR ed.name ILIKE '%' || $3 || '%')
-	AND ($4::text IS NULL OR ed.surname ILIKE '%' || $4 || '%')
-	AND ($5::text IS NULL OR ed.middlename ILIKE '%' || $5 || '%')
-ORDER BY e.id
-LIMIT $7
-OFFSET $6
+select
+    e.id,
+    e.unique_id,
+    e.gender,
+    e.tin,
+    e.highest_academic_degree,
+    e.speciality,
+    e.current_workplace,
+    ed.surname,
+    ed.name,
+    ed.middlename
+from employees e
+join
+    employee_details ed
+    on ed.employee_id = e.id
+    and ed.is_employee_details_new is true
+    and ed.language_code = $1
+where
+    -- must exist in employee_socials
+    exists (select 1 from employee_socials es where es.employee_id = e.id)
+    -- required non-null denormalized fields
+    and e.highest_academic_degree is not null
+    and e.speciality is not null
+    and e.current_workplace is not null
+
+    -- optional filters (pass NULL to ignore)
+    and (nullif($2::text, '') is null or e.unique_id = $2)
+    and (
+        nullif($3::text, '') is null
+        or ed.name ilike '%' || $3 || '%'
+    )
+    and (
+        nullif($4::text, '') is null
+        or ed.surname ilike '%' || $4 || '%'
+    )
+    and (
+        nullif($5::text, '') is null
+        or ed.middlename ilike '%' || $5 || '%'
+    )
+    and (
+        nullif($6::text, '') is null
+        or e.current_workplace = $6
+    )
+order by e.id
+limit $8
+offset $7
 `
 
 type GetPersonnelPaginatedParams struct {
-	LanguageCode string      `json:"language_code"`
-	Uid          pgtype.Text `json:"uid"`
-	Name         pgtype.Text `json:"name"`
-	Surname      pgtype.Text `json:"surname"`
-	Middlename   pgtype.Text `json:"middlename"`
-	Page         int32       `json:"page"`
-	Limit        int32       `json:"limit"`
+	LanguageCode string `json:"language_code"`
+	Uid          string `json:"uid"`
+	Name         string `json:"name"`
+	Surname      string `json:"surname"`
+	Middlename   string `json:"middlename"`
+	Workplace    string `json:"workplace"`
+	Page         int32  `json:"page"`
+	Limit        int32  `json:"limit"`
 }
 
 type GetPersonnelPaginatedRow struct {
-	EmployeeID            int64       `json:"employee_id"`
+	ID                    int64       `json:"id"`
 	UniqueID              string      `json:"unique_id"`
+	Gender                pgtype.Text `json:"gender"`
+	Tin                   pgtype.Text `json:"tin"`
+	HighestAcademicDegree pgtype.Text `json:"highest_academic_degree"`
+	Speciality            pgtype.Text `json:"speciality"`
+	CurrentWorkplace      pgtype.Text `json:"current_workplace"`
 	Surname               string      `json:"surname"`
 	Name                  string      `json:"name"`
 	Middlename            pgtype.Text `json:"middlename"`
-	Currentworkplace      string      `json:"currentworkplace"`
-	Highestacademicdegree string      `json:"highestacademicdegree"`
-	Speciality            string      `json:"speciality"`
 }
 
 func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPaginatedParams) ([]GetPersonnelPaginatedRow, error) {
@@ -250,6 +264,7 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 		arg.Name,
 		arg.Surname,
 		arg.Middlename,
+		arg.Workplace,
 		arg.Page,
 		arg.Limit,
 	)
@@ -261,18 +276,57 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 	for rows.Next() {
 		var i GetPersonnelPaginatedRow
 		if err := rows.Scan(
-			&i.EmployeeID,
+			&i.ID,
 			&i.UniqueID,
+			&i.Gender,
+			&i.Tin,
+			&i.HighestAcademicDegree,
+			&i.Speciality,
+			&i.CurrentWorkplace,
 			&i.Surname,
 			&i.Name,
 			&i.Middlename,
-			&i.Currentworkplace,
-			&i.Highestacademicdegree,
-			&i.Speciality,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUniqueWorkplaces = `-- name: ListUniqueWorkplaces :many
+select distinct e.current_workplace
+from employees e
+join
+    employee_details ed
+    on ed.employee_id = e.id
+    and ed.is_employee_details_new is true
+    and ed.language_code = $1
+where
+    exists (select 1 from employee_socials es where es.employee_id = e.id)
+    and e.highest_academic_degree is not null
+    and e.speciality is not null
+    and e.current_workplace is not null
+    and e.current_workplace <> ''
+order by e.current_workplace asc
+`
+
+func (q *Queries) ListUniqueWorkplaces(ctx context.Context, languageCode string) ([]pgtype.Text, error) {
+	rows, err := q.db.Query(ctx, listUniqueWorkplaces, languageCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.Text{}
+	for rows.Next() {
+		var current_workplace pgtype.Text
+		if err := rows.Scan(&current_workplace); err != nil {
+			return nil, err
+		}
+		items = append(items, current_workplace)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

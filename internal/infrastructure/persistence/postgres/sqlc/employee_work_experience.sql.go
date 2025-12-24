@@ -60,8 +60,8 @@ func (q *Queries) CreateEmployeeWorkExperience(ctx context.Context, arg CreateEm
 }
 
 const deleteEmployeeWorkExperience = `-- name: DeleteEmployeeWorkExperience :exec
-DELETE FROM employee_work_experiences
-WHERE id = $1
+delete from employee_work_experiences
+where id = $1
 `
 
 func (q *Queries) DeleteEmployeeWorkExperience(ctx context.Context, id int64) error {
@@ -70,9 +70,9 @@ func (q *Queries) DeleteEmployeeWorkExperience(ctx context.Context, id int64) er
 }
 
 const getEmployeeWorkExperienceByID = `-- name: GetEmployeeWorkExperienceByID :one
-SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
-FROM employee_work_experiences
-WHERE id = $1
+select id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
+from employee_work_experiences
+where id = $1
 `
 
 func (q *Queries) GetEmployeeWorkExperienceByID(ctx context.Context, id int64) (EmployeeWorkExperience, error) {
@@ -95,10 +95,11 @@ func (q *Queries) GetEmployeeWorkExperienceByID(ctx context.Context, id int64) (
 }
 
 const getEmployeeWorkExperiencesByEmployeeIDAndLanguageCode = `-- name: GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCode :many
-SELECT id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
-FROM employee_work_experiences
-WHERE employee_id = $1 AND language_code = $2
-ORDER BY employee_work_experiences.on_going DESC, employee_work_experiences.date_end DESC
+select id, employee_id, language_code, workplace, job_title, description, date_start, date_end, created_at, updated_at, on_going
+from employee_work_experiences
+where employee_id = $1 and language_code = $2
+order by
+    employee_work_experiences.on_going desc, employee_work_experiences.date_end desc
 `
 
 type GetEmployeeWorkExperiencesByEmployeeIDAndLanguageCodeParams struct {

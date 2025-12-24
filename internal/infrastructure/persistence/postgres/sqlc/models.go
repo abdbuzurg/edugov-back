@@ -9,13 +9,16 @@ import (
 )
 
 type Employee struct {
-	ID        int64              `json:"id"`
-	UniqueID  string             `json:"unique_id"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	UserID    pgtype.Int8        `json:"user_id"`
-	Gender    pgtype.Text        `json:"gender"`
-	Tin       pgtype.Text        `json:"tin"`
+	ID                    int64              `json:"id"`
+	UniqueID              string             `json:"unique_id"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+	UserID                pgtype.Int8        `json:"user_id"`
+	Gender                pgtype.Text        `json:"gender"`
+	Tin                   pgtype.Text        `json:"tin"`
+	HighestAcademicDegree pgtype.Text        `json:"highest_academic_degree"`
+	Speciality            pgtype.Text        `json:"speciality"`
+	CurrentWorkplace      pgtype.Text        `json:"current_workplace"`
 }
 
 type EmployeeDegree struct {
