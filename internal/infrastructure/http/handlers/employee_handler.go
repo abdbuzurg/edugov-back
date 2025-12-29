@@ -194,7 +194,6 @@ func (h *EmployeeHandler) GetProfilePicture(w http.ResponseWriter, r *http.Reque
 // Response body - none
 func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	fmt.Println("KEK")
 
 	filter := &dtos.PersonnelPaginatedQueryParameters{
 		UID:          query.Get("uid"),
@@ -204,7 +203,6 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 		Workplace:    query.Get("workplace"),
 		LanguageCode: middleware.GetLanguageFromContext(r.Context()),
 	}
-	fmt.Println(filter.Workplace)
 
 	page, err := strconv.ParseInt(query.Get("page"), 0, 64)
 	if err != nil {
@@ -240,6 +238,8 @@ func (h *EmployeeHandler) GetPersonnelCountPaginated(w http.ResponseWriter, r *h
 		Workplace:    query.Get("workplace"),
 		LanguageCode: middleware.GetLanguageFromContext(r.Context()),
 	}
+
+	fmt.Println("COUNT HANDLER FILTER DATA: ", filter)
 
 	personnel, err := h.employeeUC.GetPersonnelCountPaginated(r.Context(), filter)
 	if err != nil {

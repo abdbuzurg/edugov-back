@@ -222,7 +222,6 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 		txEmployeeRepo := postgres.NewPgEmployeeRepositoryWithQuery(q)
 		txEmployeeWorkExperienceRepo := postgres.NewPgEmployeeWorkExperienceRepositoryWithQuery(q)
 		txEmployeeSocialRepo := postgres.NewPgEmployeeSocialRepositoryWithQueries(q)
-		fmt.Println(filter)
 
 		personnelInitialInfo, err := txEmployeeRepo.GetPersonnelIDsPaginated(ctx, filter)
 		if err != nil {
@@ -233,6 +232,8 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 
 			return err
 		}
+
+		fmt.Println("personnel initial info", personnelInitialInfo)
 
 		for index := range personnelInitialInfo {
 			//personnel UID
@@ -296,6 +297,7 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 
 func (uc *employeeUsecase) GetPersonnelCountPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*int64, error) {
 	total, err := uc.employeeRepo.CountPersonnel(ctx, filter)
+	fmt.Println("GET PERSONNEL COUNT FUNCTION RESULT", total, err)
 	if err != nil {
 		total = 0
 		return &total, err
