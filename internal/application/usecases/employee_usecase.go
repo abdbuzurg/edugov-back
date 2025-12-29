@@ -257,10 +257,6 @@ func (uc *employeeUsecase) GetPersonnelPaginated(ctx context.Context, filter *dt
 				return err
 			}
 
-			if len(currentEmployeeWorkExperiences) == 0 {
-				continue
-			}
-
 			var lastDateOfWork time.Time
 			if currentEmployeeWorkExperiences[0].Ongoing {
 				lastDateOfWork = time.Now()
