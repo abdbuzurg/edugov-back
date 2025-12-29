@@ -218,6 +218,8 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 	}
 	filter.Limit = limit
 
+	fmt.Println("GetPersonnelPaginated handler filter data: ", filter)
+
 	personnel, err := h.employeeUC.GetPersonnelPaginated(r.Context(), filter)
 	if err != nil {
 		utils.RespondWithError(w, r, err)
