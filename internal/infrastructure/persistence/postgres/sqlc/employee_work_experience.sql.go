@@ -146,8 +146,11 @@ SET
   job_title = COALESCE($2, job_title),
   description = COALESCE($3, description),
   date_start = COALESCE($4, date_start),
-  date_end = COALESCE($5, date_end),
-  on_going = COALESCE($6, on_going),
+  date_end = CASE
+    WHEN $6::boolean IS TRUE THEN NULL
+    ELSE COALESCE($5, date_end)
+  END,
+  on_going = COALESCE($6::boolean, on_going),
   updated_at = now()
 WHERE id = $7
 RETURNING id, created_at, updated_at
@@ -159,7 +162,7 @@ type UpdateEmployeeWorkExperienceParams struct {
 	Description string      `json:"description"`
 	DateStart   pgtype.Date `json:"date_start"`
 	DateEnd     pgtype.Date `json:"date_end"`
-	OnGoing     bool        `json:"on_going"`
+	Column6     bool        `json:"column_6"`
 	ID          int64       `json:"id"`
 }
 
@@ -176,7 +179,7 @@ func (q *Queries) UpdateEmployeeWorkExperience(ctx context.Context, arg UpdateEm
 		arg.Description,
 		arg.DateStart,
 		arg.DateEnd,
-		arg.OnGoing,
+		arg.Column6,
 		arg.ID,
 	)
 	var i UpdateEmployeeWorkExperienceRow

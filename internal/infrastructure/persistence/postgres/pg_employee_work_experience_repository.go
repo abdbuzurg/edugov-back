@@ -46,8 +46,8 @@ func (r *pgEmployeeWorkExperienceRepository) Create(ctx context.Context, employe
 			Time:  employeeWorkExperience.DateEnd,
 			Valid: !employeeWorkExperience.DateEnd.IsZero(),
 		},
-		OnGoing: employeeWorkExperience.Ongoing,
-	})
+			OnGoing: employeeWorkExperience.Ongoing,
+		})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to create employee work experience: %w", err))
 	}
@@ -73,8 +73,8 @@ func (r *pgEmployeeWorkExperienceRepository) Update(ctx context.Context, employe
 			Time:  employeeWorkExperience.DateEnd,
 			Valid: !employeeWorkExperience.DateEnd.IsZero(),
 		},
-		OnGoing: employeeWorkExperience.Ongoing,
-	})
+			Column6: employeeWorkExperience.Ongoing,
+		})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to update employee work experience: %w", err))
 	}
