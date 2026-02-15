@@ -41,15 +41,20 @@ where
         nullif($6::text, '') is null
         or e.current_workplace = $6
     )
+    and (
+        nullif($7::text, '') is null
+        or e.highest_academic_degree = $7
+    )
 `
 
 type CountPersonnelParams struct {
-	LanguageCode string `json:"language_code"`
-	Uid          string `json:"uid"`
-	Name         string `json:"name"`
-	Surname      string `json:"surname"`
-	Middlename   string `json:"middlename"`
-	Workplace    string `json:"workplace"`
+	LanguageCode   string `json:"language_code"`
+	Uid            string `json:"uid"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Middlename     string `json:"middlename"`
+	Workplace      string `json:"workplace"`
+	AcademicDegree string `json:"academic_degree"`
 }
 
 func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) (int64, error) {
@@ -60,6 +65,7 @@ func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) 
 		arg.Surname,
 		arg.Middlename,
 		arg.Workplace,
+		arg.AcademicDegree,
 	)
 	var total int64
 	err := row.Scan(&total)
@@ -228,20 +234,25 @@ where
         nullif($6::text, '') is null
         or e.current_workplace = $6
     )
+    and (
+        nullif($7::text, '') is null
+        or e.highest_academic_degree = $7
+    )
 order by e.id
-limit $8
-offset $7
+limit $9
+offset $8
 `
 
 type GetPersonnelPaginatedParams struct {
-	LanguageCode string `json:"language_code"`
-	Uid          string `json:"uid"`
-	Name         string `json:"name"`
-	Surname      string `json:"surname"`
-	Middlename   string `json:"middlename"`
-	Workplace    string `json:"workplace"`
-	Page         int32  `json:"page"`
-	Limit        int32  `json:"limit"`
+	LanguageCode   string `json:"language_code"`
+	Uid            string `json:"uid"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Middlename     string `json:"middlename"`
+	Workplace      string `json:"workplace"`
+	AcademicDegree string `json:"academic_degree"`
+	Page           int32  `json:"page"`
+	Limit          int32  `json:"limit"`
 }
 
 type GetPersonnelPaginatedRow struct {
@@ -265,6 +276,7 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 		arg.Surname,
 		arg.Middlename,
 		arg.Workplace,
+		arg.AcademicDegree,
 		arg.Page,
 		arg.Limit,
 	)
@@ -290,6 +302,35 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUniqueHighestAcademicDegrees = `-- name: ListUniqueHighestAcademicDegrees :many
+select distinct e.highest_academic_degree
+from employees e
+where
+    e.highest_academic_degree is not null
+    and e.highest_academic_degree <> ''
+order by e.highest_academic_degree asc
+`
+
+func (q *Queries) ListUniqueHighestAcademicDegrees(ctx context.Context) ([]pgtype.Text, error) {
+	rows, err := q.db.Query(ctx, listUniqueHighestAcademicDegrees)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.Text{}
+	for rows.Next() {
+		var highest_academic_degree pgtype.Text
+		if err := rows.Scan(&highest_academic_degree); err != nil {
+			return nil, err
+		}
+		items = append(items, highest_academic_degree)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

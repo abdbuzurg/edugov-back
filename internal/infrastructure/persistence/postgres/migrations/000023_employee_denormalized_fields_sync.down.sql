@@ -1,0 +1,5 @@
+DROP TRIGGER IF EXISTS employee_work_experiences_refresh_employee_denormalized_fields_trg ON employee_work_experiences;
+DROP TRIGGER IF EXISTS employee_degrees_refresh_employee_denormalized_fields_trg ON employee_degrees;
+
+DROP FUNCTION IF EXISTS trg_refresh_employee_denormalized_fields();
+DROP FUNCTION IF EXISTS refresh_employee_denormalized_fields(BIGINT);

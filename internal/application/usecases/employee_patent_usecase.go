@@ -40,10 +40,10 @@ func (uc *employeePatentUsecase) Create(ctx context.Context, req *dtos.CreateEmp
 	}
 
 	employeePatent := &domain.EmployeePatent{
-		EmployeeID:       req.EmployeeID,
-		LanguageCode:     req.LanguageCode,
-		PatentTitle:      req.PatentTitle,
-		Description:      req.Description,
+		EmployeeID:   req.EmployeeID,
+		LanguageCode: req.LanguageCode,
+		PatentTitle:  req.PatentTitle,
+		Description:  req.Description,
 	}
 
 	createdEmployeePatent, err := uc.employeePatentRepo.Create(ctx, employeePatent)
@@ -114,5 +114,3 @@ func (uc *employeePatentUsecase) GetByEmployeeIDAndLanguageCode(ctx context.Cont
 
 	return resp, nil
 }
-
-

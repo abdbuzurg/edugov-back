@@ -119,14 +119,15 @@ func (r *pgEmployeeRepository) GetByUserID(ctx context.Context, userID int64) (*
 
 func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) ([]*repositories.GetPersonnelPaginatedQueryResult, error) {
 	personnelResult, err := r.queries.GetPersonnelPaginated(ctx, sqlc.GetPersonnelPaginatedParams{
-		LanguageCode: filter.LanguageCode,
-		Uid:          filter.UID,
-		Name:         filter.Name,
-		Surname:      filter.Surname,
-		Middlename:   filter.Middlename,
-		Workplace:    filter.Workplace,
-		Page:         int32((filter.Page - 1) * filter.Limit),
-		Limit:        int32(filter.Limit),
+		LanguageCode:   filter.LanguageCode,
+		Uid:            filter.UID,
+		Name:           filter.Name,
+		Surname:        filter.Surname,
+		Middlename:     filter.Middlename,
+		Workplace:      filter.Workplace,
+		AcademicDegree: filter.AcademicDegree,
+		Page:           int32((filter.Page - 1) * filter.Limit),
+		Limit:          int32(filter.Limit),
 	})
 	if err != nil {
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrive paginated personnel data (page - %d, limit - %d): %w", filter.Page, filter.Limit, err))
@@ -151,16 +152,33 @@ func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, fil
 
 func (r *pgEmployeeRepository) CountPersonnel(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (int64, error) {
 	count, err := r.queries.CountPersonnel(ctx, sqlc.CountPersonnelParams{
-		LanguageCode: filter.LanguageCode,
-		Uid:          filter.UID,
-		Name:         filter.Name,
-		Surname:      filter.Surname,
-		Middlename:   filter.Middlename,
-		Workplace:    filter.Workplace,
+		LanguageCode:   filter.LanguageCode,
+		Uid:            filter.UID,
+		Name:           filter.Name,
+		Surname:        filter.Surname,
+		Middlename:     filter.Middlename,
+		Workplace:      filter.Workplace,
+		AcademicDegree: filter.AcademicDegree,
 	})
 	if err != nil {
 		return 0, custom_errors.InternalServerError(fmt.Errorf("could not count personnel: %w", err))
 	}
 
 	return count, nil
+}
+
+func (r *pgEmployeeRepository) ListUniqueHighestAcademicDegrees(ctx context.Context) ([]string, error) {
+	degrees, err := r.queries.ListUniqueHighestAcademicDegrees(ctx)
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrieve unique highest academic degrees: %w", err))
+	}
+
+	result := make([]string, 0, len(degrees))
+	for i := range degrees {
+		if degrees[i].Valid {
+			result = append(result, degrees[i].String)
+		}
+	}
+
+	return result, nil
 }

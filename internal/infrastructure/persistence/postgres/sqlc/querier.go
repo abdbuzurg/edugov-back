@@ -141,6 +141,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserSessionByToken(ctx context.Context, refreshToken string) (UserSession, error)
+	ListUniqueHighestAcademicDegrees(ctx context.Context) ([]pgtype.Text, error)
 	ListUniqueWorkplaces(ctx context.Context, languageCode string) ([]pgtype.Text, error)
 	UpdateEmployeeDegree(ctx context.Context, arg UpdateEmployeeDegreeParams) (UpdateEmployeeDegreeRow, error)
 	UpdateEmployeeDetails(ctx context.Context, arg UpdateEmployeeDetailsParams) (UpdateEmployeeDetailsRow, error)

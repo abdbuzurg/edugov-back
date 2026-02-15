@@ -15,14 +15,15 @@ type UpdateEmployeeRequest struct {
 }
 
 type PersonnelPaginatedQueryParameters struct {
-	LanguageCode string
-	UID          string
-	Name         string
-	Surname      string
-	Middlename   string
-	Workplace    string
-	Limit        int64
-	Page         int64
+	LanguageCode   string
+	UID            string
+	AcademicDegree string
+	Name           string
+	Surname        string
+	Middlename     string
+	Workplace      string
+	Limit          int64
+	Page           int64
 }
 
 // ---- RESPONSE DTOS ----

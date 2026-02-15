@@ -196,12 +196,13 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 	query := r.URL.Query()
 
 	filter := &dtos.PersonnelPaginatedQueryParameters{
-		UID:          query.Get("uid"),
-		Name:         query.Get("name"),
-		Surname:      query.Get("surname"),
-		Middlename:   query.Get("middlename"),
-		Workplace:    query.Get("workplace"),
-		LanguageCode: middleware.GetLanguageFromContext(r.Context()),
+		UID:            query.Get("uid"),
+		AcademicDegree: query.Get("academic_degree"),
+		Name:           query.Get("name"),
+		Surname:        query.Get("surname"),
+		Middlename:     query.Get("middlename"),
+		Workplace:      query.Get("workplace"),
+		LanguageCode:   middleware.GetLanguageFromContext(r.Context()),
 	}
 
 	page, err := strconv.ParseInt(query.Get("page"), 0, 64)
@@ -233,12 +234,13 @@ func (h *EmployeeHandler) GetPersonnelCountPaginated(w http.ResponseWriter, r *h
 	query := r.URL.Query()
 
 	filter := &dtos.PersonnelPaginatedQueryParameters{
-		UID:          query.Get("uid"),
-		Name:         query.Get("name"),
-		Surname:      query.Get("surname"),
-		Middlename:   query.Get("middlename"),
-		Workplace:    query.Get("workplace"),
-		LanguageCode: middleware.GetLanguageFromContext(r.Context()),
+		UID:            query.Get("uid"),
+		AcademicDegree: query.Get("academic_degree"),
+		Name:           query.Get("name"),
+		Surname:        query.Get("surname"),
+		Middlename:     query.Get("middlename"),
+		Workplace:      query.Get("workplace"),
+		LanguageCode:   middleware.GetLanguageFromContext(r.Context()),
 	}
 
 	fmt.Println("COUNT HANDLER FILTER DATA: ", filter)
@@ -250,4 +252,14 @@ func (h *EmployeeHandler) GetPersonnelCountPaginated(w http.ResponseWriter, r *h
 	}
 
 	utils.RespondWithJSON(w, r, http.StatusOK, personnel)
+}
+
+func (h *EmployeeHandler) ListUniqueHighestAcademicDegrees(w http.ResponseWriter, r *http.Request) {
+	degrees, err := h.employeeUC.ListUniqueHighestAcademicDegrees(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	utils.RespondWithJSON(w, r, http.StatusOK, degrees)
 }

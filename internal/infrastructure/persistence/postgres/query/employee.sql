@@ -75,6 +75,10 @@ where
         nullif(sqlc.arg(workplace)::text, '') is null
         or e.current_workplace = sqlc.arg(workplace)
     )
+    and (
+        nullif(sqlc.arg(academic_degree)::text, '') is null
+        or e.highest_academic_degree = sqlc.arg(academic_degree)
+    )
 order by e.id
 limit sqlc.arg('limit')
 offset sqlc.arg(page)
@@ -110,6 +114,10 @@ where
         nullif(sqlc.arg(workplace)::text, '') is null
         or e.current_workplace = sqlc.arg(workplace)
     )
+    and (
+        nullif(sqlc.arg(academic_degree)::text, '') is null
+        or e.highest_academic_degree = sqlc.arg(academic_degree)
+    )
 ;
 
 -- name: ListUniqueWorkplaces :many
@@ -127,4 +135,13 @@ where
     and e.current_workplace is not null
     and e.current_workplace <> ''
 order by e.current_workplace asc
+;
+
+-- name: ListUniqueHighestAcademicDegrees :many
+select distinct e.highest_academic_degree
+from employees e
+where
+    e.highest_academic_degree is not null
+    and e.highest_academic_degree <> ''
+order by e.highest_academic_degree asc
 ;

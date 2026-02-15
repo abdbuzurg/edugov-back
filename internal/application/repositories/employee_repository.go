@@ -40,4 +40,7 @@ type EmployeeRepository interface {
 
 	//CountPersonnel - count total number of personnel (by unique employee_id) from db that satisfy the filter paramenter
 	CountPersonnel(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (int64, error)
+
+	// ListUniqueHighestAcademicDegrees - returns all unique non-empty highest academic degree values.
+	ListUniqueHighestAcademicDegrees(ctx context.Context) ([]string, error)
 }

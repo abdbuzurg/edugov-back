@@ -235,7 +235,6 @@ func (uc *authUsecase) Register(ctx context.Context, req *dtos.RegisterRequest) 
 			if employeeResult != nil {
 				isUniqueExists = false
 			}
-
 		}
 
 		return nil
