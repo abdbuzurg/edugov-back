@@ -75,12 +75,34 @@ AFTER INSERT OR UPDATE OR DELETE ON employee_work_experiences
 FOR EACH ROW
 EXECUTE FUNCTION trg_refresh_employee_denormalized_fields();
 
-DO $$
-DECLARE
-  r RECORD;
-BEGIN
-  FOR r IN SELECT id FROM employees LOOP
-    PERFORM refresh_employee_denormalized_fields(r.id);
-  END LOOP;
-END;
-$$;
+WITH latest_degree AS (
+  SELECT DISTINCT ON (ed.employee_id)
+    ed.employee_id,
+    ed.speciality AS highest_academic_degree,
+    ed.degree_level AS speciality
+  FROM employee_degrees ed
+  ORDER BY ed.employee_id, ed.date_end DESC NULLS LAST, ed.id DESC
+),
+latest_work AS (
+  SELECT DISTINCT ON (we.employee_id)
+    we.employee_id,
+    we.workplace AS current_workplace
+  FROM employee_work_experiences we
+  WHERE we.on_going IS TRUE
+  ORDER BY we.employee_id, we.date_start DESC NULLS LAST, we.id DESC
+)
+UPDATE employees e
+SET
+  highest_academic_degree = src.highest_academic_degree,
+  speciality = src.speciality,
+  current_workplace = src.current_workplace
+FROM (
+  SELECT
+    COALESCE(ld.employee_id, lw.employee_id) AS employee_id,
+    ld.highest_academic_degree,
+    ld.speciality,
+    lw.current_workplace
+  FROM latest_degree ld
+  FULL JOIN latest_work lw ON lw.employee_id = ld.employee_id
+) src
+WHERE e.id = src.employee_id;
