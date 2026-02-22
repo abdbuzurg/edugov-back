@@ -316,7 +316,7 @@ join employees e on e.id = ed.employee_id
 where
     ed.speciality is not null
     and ed.speciality <> ''
-    and e.speciality in (
+    and e.degree_level in (
         'Номзади илм',
         'PhD (Доктори фалсафа)',
         'Доктори илм'
