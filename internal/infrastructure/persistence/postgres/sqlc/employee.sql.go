@@ -310,27 +310,33 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 }
 
 const listUniqueHighestAcademicDegrees = `-- name: ListUniqueHighestAcademicDegrees :many
-select distinct e.highest_academic_degree
-from employees e
+select distinct ed.speciality
+from employee_degrees ed
+join employees e on e.id = ed.employee_id
 where
-    e.highest_academic_degree is not null
-    and e.highest_academic_degree <> ''
-order by e.highest_academic_degree asc
+    ed.speciality is not null
+    and ed.speciality <> ''
+    and e.speciality in (
+        'Номзади илм',
+        'PhD (Доктори фалсафа)',
+        'Доктори илм'
+    )
+order by ed.speciality asc
 `
 
-func (q *Queries) ListUniqueHighestAcademicDegrees(ctx context.Context) ([]pgtype.Text, error) {
+func (q *Queries) ListUniqueHighestAcademicDegrees(ctx context.Context) ([]string, error) {
 	rows, err := q.db.Query(ctx, listUniqueHighestAcademicDegrees)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []pgtype.Text{}
+	items := []string{}
 	for rows.Next() {
-		var highest_academic_degree pgtype.Text
-		if err := rows.Scan(&highest_academic_degree); err != nil {
+		var speciality string
+		if err := rows.Scan(&speciality); err != nil {
 			return nil, err
 		}
-		items = append(items, highest_academic_degree)
+		items = append(items, speciality)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

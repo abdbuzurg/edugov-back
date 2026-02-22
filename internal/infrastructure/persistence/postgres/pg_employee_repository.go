@@ -173,12 +173,5 @@ func (r *pgEmployeeRepository) ListUniqueHighestAcademicDegrees(ctx context.Cont
 		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrieve unique highest academic degrees: %w", err))
 	}
 
-	result := make([]string, 0, len(degrees))
-	for i := range degrees {
-		if degrees[i].Valid {
-			result = append(result, degrees[i].String)
-		}
-	}
-
-	return result, nil
+	return degrees, nil
 }

@@ -143,8 +143,8 @@ func main() {
 	employeeMux.HandleFunc("GET /degree/{employeeID}", employeeDegreeHandler.GetByEmployeeIDAndLanguageCode)
 	employeeMux.HandleFunc("PUT /degree", authMiddleware(employeeDegreeHandler.Update))
 	employeeMux.HandleFunc("POST /degree", authMiddleware(employeeDegreeHandler.Create))
-	employeeMux.HandleFunc("DELETE /degree/{id}", authMiddleware(employeeDegreeHandler.Delete))
 	// ---- employee/work-experience
+	employeeMux.HandleFunc("DELETE /degree/{id}", authMiddleware(employeeDegreeHandler.Delete))
 	employeeMux.HandleFunc("GET /work-experience/{employeeID}", employeeWorkExperienceHandler.GetByEmployeeIDAndLanguageCode)
 	employeeMux.HandleFunc("POST /work-experience", authMiddleware(employeeWorkExperienceHandler.Create))
 	employeeMux.HandleFunc("PUT /work-experience", authMiddleware(employeeWorkExperienceHandler.Update))

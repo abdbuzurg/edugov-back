@@ -138,10 +138,16 @@ order by e.current_workplace asc
 ;
 
 -- name: ListUniqueHighestAcademicDegrees :many
-select distinct e.highest_academic_degree
-from employees e
+select distinct ed.speciality
+from employee_degrees ed
+join employees e on e.id = ed.employee_id
 where
-    e.highest_academic_degree is not null
-    and e.highest_academic_degree <> ''
-order by e.highest_academic_degree asc
+    ed.speciality is not null
+    and ed.speciality <> ''
+    and e.speciality in (
+        'Номзади илм',
+        'PhD (Доктори фалсафа)',
+        'Доктори илм'
+    )
+order by ed.speciality asc
 ;
