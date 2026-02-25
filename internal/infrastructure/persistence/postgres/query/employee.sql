@@ -141,13 +141,5 @@ order by e.current_workplace asc
 select distinct ed.speciality
 from employee_degrees ed
 join employees e on e.id = ed.employee_id
-where
-    ed.speciality is not null
-    and ed.speciality <> ''
-    and e.degree_level in (
-        'Номзади илм',
-        'PhD (Доктори фалсафа)',
-        'Доктори илм'
-    )
 order by ed.speciality asc
 ;
