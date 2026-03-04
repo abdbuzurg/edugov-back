@@ -18,7 +18,7 @@ BEGIN
     ed.speciality,
     ed.degree_level
   INTO
-    v_specialityz,
+    v_speciality,
     v_highest_academic_degree
   FROM employee_degrees ed
   WHERE ed.employee_id = p_employee_id
