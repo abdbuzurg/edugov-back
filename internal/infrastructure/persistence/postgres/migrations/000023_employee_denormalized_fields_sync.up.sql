@@ -12,14 +12,14 @@ BEGIN
   END IF;
 
   -- Rule from request:
-  -- highest_academic_degree <- latest employee_degrees.speciality
-  -- speciality <- latest employee_degrees.degree_level
+  -- highest_academic_degree <- latest employee_degrees.degree_level
+  -- speciality <- latest employee_degrees.speciality
   SELECT
     ed.speciality,
     ed.degree_level
   INTO
-    v_highest_academic_degree,
-    v_speciality
+    v_specialityz,
+    v_highest_academic_degree
   FROM employee_degrees ed
   WHERE ed.employee_id = p_employee_id
   ORDER BY ed.date_end DESC NULLS LAST, ed.id DESC
