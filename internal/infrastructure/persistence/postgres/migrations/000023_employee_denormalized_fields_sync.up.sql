@@ -78,8 +78,8 @@ EXECUTE FUNCTION trg_refresh_employee_denormalized_fields();
 WITH latest_degree AS (
   SELECT DISTINCT ON (ed.employee_id)
     ed.employee_id,
-    ed.speciality AS highest_academic_degree,
-    ed.degree_level AS speciality
+    ed.speciality AS speciality,
+    ed.degree_level AS highest_academic_degree
   FROM employee_degrees ed
   ORDER BY ed.employee_id, ed.date_end DESC NULLS LAST, ed.id DESC
 ),
