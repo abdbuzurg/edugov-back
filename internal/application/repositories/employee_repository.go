@@ -43,4 +43,7 @@ type EmployeeRepository interface {
 
 	// ListUniqueHighestAcademicDegrees - returns all unique non-empty highest academic degree values.
 	ListUniqueHighestAcademicDegrees(ctx context.Context) ([]string, error)
+
+	// ListUniqueSpecialities - returns all unique non-empty speciality values.
+	ListUniqueSpecialities(ctx context.Context) ([]string, error)
 }

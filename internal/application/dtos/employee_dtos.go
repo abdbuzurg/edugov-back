@@ -18,6 +18,7 @@ type PersonnelPaginatedQueryParameters struct {
 	LanguageCode   string
 	UID            string
 	AcademicDegree string
+	Speciality     string
 	Name           string
 	Surname        string
 	Middlename     string

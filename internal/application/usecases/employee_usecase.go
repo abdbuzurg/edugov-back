@@ -22,6 +22,7 @@ type EmployeeUsecase interface {
 	GetPersonnelPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*[]dtos.PersonnelProfileData, error)
 	GetPersonnelCountPaginated(ctx context.Context, filter *dtos.PersonnelPaginatedQueryParameters) (*int64, error)
 	ListUniqueHighestAcademicDegrees(ctx context.Context) ([]string, error)
+	ListUniqueSpecialities(ctx context.Context) ([]string, error)
 }
 
 type employeeUsecase struct {
@@ -309,4 +310,8 @@ func (uc *employeeUsecase) GetPersonnelCountPaginated(ctx context.Context, filte
 
 func (uc *employeeUsecase) ListUniqueHighestAcademicDegrees(ctx context.Context) ([]string, error) {
 	return uc.employeeRepo.ListUniqueHighestAcademicDegrees(ctx)
+}
+
+func (uc *employeeUsecase) ListUniqueSpecialities(ctx context.Context) ([]string, error) {
+	return uc.employeeRepo.ListUniqueSpecialities(ctx)
 }

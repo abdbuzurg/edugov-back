@@ -76,8 +76,12 @@ where
         or e.current_workplace = sqlc.arg(workplace)
     )
     and (
-        nullif(sqlc.arg(academic_degree)::text, '') is null
-        or e.highest_academic_degree = sqlc.arg(academic_degree)
+        nullif(btrim(sqlc.arg(academic_degree)::text), '') is null
+        or btrim(e.highest_academic_degree) ilike btrim(sqlc.arg(academic_degree)::text)
+    )
+    and (
+        nullif(btrim(sqlc.arg(speciality)::text), '') is null
+        or btrim(e.speciality) ilike btrim(sqlc.arg(speciality)::text)
     )
 order by e.id
 limit sqlc.arg('limit')
@@ -115,8 +119,12 @@ where
         or e.current_workplace = sqlc.arg(workplace)
     )
     and (
-        nullif(sqlc.arg(academic_degree)::text, '') is null
-        or e.highest_academic_degree = sqlc.arg(academic_degree)
+        nullif(btrim(sqlc.arg(academic_degree)::text), '') is null
+        or btrim(e.highest_academic_degree) ilike btrim(sqlc.arg(academic_degree)::text)
+    )
+    and (
+        nullif(btrim(sqlc.arg(speciality)::text), '') is null
+        or btrim(e.speciality) ilike btrim(sqlc.arg(speciality)::text)
     )
 ;
 
@@ -144,4 +152,13 @@ where
     e.highest_academic_degree is not null
     and e.highest_academic_degree <> ''
 order by e.highest_academic_degree asc
+;
+
+-- name: ListUniqueSpecialities :many
+select distinct e.speciality
+from employees e
+where
+    e.speciality is not null
+    and e.speciality <> ''
+order by e.speciality asc
 ;

@@ -198,6 +198,7 @@ func (h *EmployeeHandler) GetPersonnelPaginated(w http.ResponseWriter, r *http.R
 	filter := &dtos.PersonnelPaginatedQueryParameters{
 		UID:            query.Get("uid"),
 		AcademicDegree: query.Get("academic_degree"),
+		Speciality:     query.Get("speciality"),
 		Name:           query.Get("name"),
 		Surname:        query.Get("surname"),
 		Middlename:     query.Get("middlename"),
@@ -236,6 +237,7 @@ func (h *EmployeeHandler) GetPersonnelCountPaginated(w http.ResponseWriter, r *h
 	filter := &dtos.PersonnelPaginatedQueryParameters{
 		UID:            query.Get("uid"),
 		AcademicDegree: query.Get("academic_degree"),
+		Speciality:     query.Get("speciality"),
 		Name:           query.Get("name"),
 		Surname:        query.Get("surname"),
 		Middlename:     query.Get("middlename"),
@@ -262,4 +264,14 @@ func (h *EmployeeHandler) ListUniqueHighestAcademicDegrees(w http.ResponseWriter
 	}
 
 	utils.RespondWithJSON(w, r, http.StatusOK, degrees)
+}
+
+func (h *EmployeeHandler) ListUniqueSpecialities(w http.ResponseWriter, r *http.Request) {
+	specialities, err := h.employeeUC.ListUniqueSpecialities(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, r, err)
+		return
+	}
+
+	utils.RespondWithJSON(w, r, http.StatusOK, specialities)
 }

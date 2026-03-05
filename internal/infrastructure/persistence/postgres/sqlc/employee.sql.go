@@ -42,8 +42,12 @@ where
         or e.current_workplace = $6
     )
     and (
-        nullif($7::text, '') is null
-        or e.highest_academic_degree = $7
+        nullif(btrim($7::text), '') is null
+        or btrim(e.highest_academic_degree) ilike btrim($7::text)
+    )
+    and (
+        nullif(btrim($8::text), '') is null
+        or btrim(e.speciality) ilike btrim($8::text)
     )
 `
 
@@ -55,6 +59,7 @@ type CountPersonnelParams struct {
 	Middlename     string `json:"middlename"`
 	Workplace      string `json:"workplace"`
 	AcademicDegree string `json:"academic_degree"`
+	Speciality     string `json:"speciality"`
 }
 
 func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) (int64, error) {
@@ -66,6 +71,7 @@ func (q *Queries) CountPersonnel(ctx context.Context, arg CountPersonnelParams) 
 		arg.Middlename,
 		arg.Workplace,
 		arg.AcademicDegree,
+		arg.Speciality,
 	)
 	var total int64
 	err := row.Scan(&total)
@@ -235,12 +241,16 @@ where
         or e.current_workplace = $6
     )
     and (
-        nullif($7::text, '') is null
-        or e.highest_academic_degree = $7
+        nullif(btrim($7::text), '') is null
+        or btrim(e.highest_academic_degree) ilike btrim($7::text)
+    )
+    and (
+        nullif(btrim($8::text), '') is null
+        or btrim(e.speciality) ilike btrim($8::text)
     )
 order by e.id
-limit $9
-offset $8
+limit $10
+offset $9
 `
 
 type GetPersonnelPaginatedParams struct {
@@ -251,6 +261,7 @@ type GetPersonnelPaginatedParams struct {
 	Middlename     string `json:"middlename"`
 	Workplace      string `json:"workplace"`
 	AcademicDegree string `json:"academic_degree"`
+	Speciality     string `json:"speciality"`
 	Page           int32  `json:"page"`
 	Limit          int32  `json:"limit"`
 }
@@ -277,6 +288,7 @@ func (q *Queries) GetPersonnelPaginated(ctx context.Context, arg GetPersonnelPag
 		arg.Middlename,
 		arg.Workplace,
 		arg.AcademicDegree,
+		arg.Speciality,
 		arg.Page,
 		arg.Limit,
 	)
@@ -331,6 +343,35 @@ func (q *Queries) ListUniqueHighestAcademicDegrees(ctx context.Context) ([]pgtyp
 			return nil, err
 		}
 		items = append(items, highest_academic_degree)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUniqueSpecialities = `-- name: ListUniqueSpecialities :many
+select distinct e.speciality
+from employees e
+where
+    e.speciality is not null
+    and e.speciality <> ''
+order by e.speciality asc
+`
+
+func (q *Queries) ListUniqueSpecialities(ctx context.Context) ([]pgtype.Text, error) {
+	rows, err := q.db.Query(ctx, listUniqueSpecialities)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.Text{}
+	for rows.Next() {
+		var speciality pgtype.Text
+		if err := rows.Scan(&speciality); err != nil {
+			return nil, err
+		}
+		items = append(items, speciality)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

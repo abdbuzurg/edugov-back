@@ -126,6 +126,7 @@ func (r *pgEmployeeRepository) GetPersonnelIDsPaginated(ctx context.Context, fil
 		Middlename:     filter.Middlename,
 		Workplace:      filter.Workplace,
 		AcademicDegree: filter.AcademicDegree,
+		Speciality:     filter.Speciality,
 		Page:           int32((filter.Page - 1) * filter.Limit),
 		Limit:          int32(filter.Limit),
 	})
@@ -159,6 +160,7 @@ func (r *pgEmployeeRepository) CountPersonnel(ctx context.Context, filter *dtos.
 		Middlename:     filter.Middlename,
 		Workplace:      filter.Workplace,
 		AcademicDegree: filter.AcademicDegree,
+		Speciality:     filter.Speciality,
 	})
 	if err != nil {
 		return 0, custom_errors.InternalServerError(fmt.Errorf("could not count personnel: %w", err))
@@ -177,6 +179,22 @@ func (r *pgEmployeeRepository) ListUniqueHighestAcademicDegrees(ctx context.Cont
 	for i := range degrees {
 		if degrees[i].Valid {
 			result = append(result, degrees[i].String)
+		}
+	}
+
+	return result, nil
+}
+
+func (r *pgEmployeeRepository) ListUniqueSpecialities(ctx context.Context) ([]string, error) {
+	specialities, err := r.queries.ListUniqueSpecialities(ctx)
+	if err != nil {
+		return nil, custom_errors.InternalServerError(fmt.Errorf("failed to retrieve unique specialities: %w", err))
+	}
+
+	result := make([]string, 0, len(specialities))
+	for i := range specialities {
+		if specialities[i].Valid {
+			result = append(result, specialities[i].String)
 		}
 	}
 

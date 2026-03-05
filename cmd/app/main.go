@@ -134,6 +134,7 @@ func main() {
 	employeeMux.HandleFunc("GET /personnel", employeeHandlers.GetPersonnelPaginated)
 	employeeMux.HandleFunc("GET /personnel/count", employeeHandlers.GetPersonnelCountPaginated)
 	employeeMux.HandleFunc("GET /personnel/list-of-highest-academic-degrees", employeeHandlers.ListUniqueHighestAcademicDegrees)
+	employeeMux.HandleFunc("GET /personnel/list-specialities", employeeHandlers.ListUniqueSpecialities)
 	employeeMux.HandleFunc("GET /personnel/list-workplaces", employeeWorkExperienceHandler.ListUniqueOngoingWorkplaces)
 
 	// ---- employee/detials
